@@ -4,7 +4,7 @@ export class Spell extends GameObject {
 	lane: number; // Col 
 	rank: number; // Row
 	type: number; 
-
+	// Be poop make spell
 	constructor(lane: number, type: 0|1|2|3){
 		super()
 		this.lane = lane;
