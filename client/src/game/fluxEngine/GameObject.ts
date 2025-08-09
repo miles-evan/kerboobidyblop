@@ -38,6 +38,8 @@ export abstract class GameObject {
 		this.height = height;
 		this._object.style.backgroundImage = "url(" + sprite + ")";
 		this.setHitbox(hitboxWidth, hitboxHeight);
+		if(!Game.screen)
+			throw new Error("Maybe try making the screen first, jackass");
 		Game.screen.append(this._object);
 		Game._addGameObjects(this);
 	}
