@@ -5,30 +5,53 @@ export class Game {
 	static _gameObjects: GameObject[] = [];
 	static maxFrameRate: number = 60;
 	static isRunning: boolean = false;
-	static screen: Element = document.querySelector(".screen") as Element;
-	static screenWidth: number = Number(Game.screen.clientWidth);
-	static screenHeight: number = Number(Game.screen.clientHeight);
+	static screen: HTMLElement | null;
+	static screenWidth: number;
+	static screenHeight: number;
 	private static keysDown: Record<Key, number> = {};
 	private static lastFrameTimeStamp = 0;
 	private static currentFrameTimeStamp = 0;
+	private static onKeyDown: (e: KeyboardEvent) => void;
+	private static onKeyUp: (e: KeyboardEvent) => void;
+	private static onTouchStart: (e: TouchEvent) => void;
+	private static onTouchEnd: (e: TouchEvent) => void;
 	static globalStep = () => {};
 	
 	
-	static {
-		document.addEventListener("keydown", event => {
-			if(!(event.key in Game.keysDown))
-				Game.keysDown[event.key] = Date.now();
-		});
-		document.addEventListener("keyup", event => {
-			delete Game.keysDown[event.key];
-		});
-		document.addEventListener('touchstart', _ => {
+	static init(screen: HTMLElement) {
+		Game.screen = screen;
+		Game.screenWidth = screen.clientWidth;
+		Game.screenHeight = screen.clientHeight;
+		
+		Game.onKeyDown = (e: KeyboardEvent) => {
+			if(!(e.key in Game.keysDown))
+				Game.keysDown[e.key as Key] = Date.now();
+		};
+		Game.onKeyUp = (e: KeyboardEvent) => {
+			delete Game.keysDown[e.key as Key];
+		};
+		Game.onTouchStart = () => {
 			if(!("touch" in Game.keysDown))
 				Game.keysDown["touch"] = Date.now();
-		});
-		document.addEventListener('touchend', _ => {
+		};
+		Game.onTouchEnd = () => {
 			delete Game.keysDown["touch"];
-		});
+		};
+		window.addEventListener("keydown", Game.onKeyDown);
+		window.addEventListener("keyup", Game.onKeyUp);
+		screen.addEventListener("touchstart", Game.onTouchStart);
+		screen.addEventListener("touchend", Game.onTouchEnd);
+	}
+	
+	static destroy() {
+		Game.stop();
+		if(!Game.screen) return;
+		window.removeEventListener("keydown", Game.onKeyDown);
+		window.removeEventListener("keyup", Game.onKeyUp);
+		Game.screen.removeEventListener("touchstart", Game.onTouchStart);
+		Game.screen.removeEventListener("touchend", Game.onTouchEnd);
+		Game.screen = null;
+		Game._gameObjects = [];
 	}
 	
 	
