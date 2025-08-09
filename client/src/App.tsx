@@ -18,7 +18,7 @@ function App() {
 	
 	return (
 		<>
-			<h1>PEW PEW FLUX</h1>
+			<h1>Kerboobidyblop 2</h1>
 			
 			<Screen screenRef={screenRef}>
 				<p>HI bro</p>
