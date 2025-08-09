@@ -1,4 +1,4 @@
-import { GameObject } from "./GameObject.js";
+import { GameObject } from "./GameObject.ts";
 
 export {};
 
