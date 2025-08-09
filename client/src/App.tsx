@@ -1,21 +1,31 @@
-import { useState } from 'react'
+import { useEffect, useRef } from 'react'
 import './App.css'
+import { Game } from "./game/fluxEngine/Game.ts";
+import Screen from "./components/Screen.tsx"
+
 
 function App() {
-  const [count, setCount] = useState(0)
-
-  return (
-    <>
-      <div>
-      </div>
-      <h1>PEW PEW FLUX</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-      </div>
-    </>
-  )
+	
+	const screenRef = useRef<HTMLDivElement>(null);
+	
+	useEffect(() => {
+		if(!screenRef.current) return;
+		Game.init(screenRef.current);
+		Game.start();
+		return () => Game.destroy();
+	}, []);
+	
+	
+	return (
+		<>
+			<h1>PEW PEW FLUX</h1>
+			
+			<Screen screenRef={screenRef}>
+				<p>HI bro</p>
+			</Screen>
+		</>
+	);
 }
+
 
 export default App
