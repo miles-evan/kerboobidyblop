@@ -9,14 +9,15 @@ export default class Spell extends GameObject {
 	readonly vy = 1;
 
 	constructor(x: number, y: number, tier: 1|2|3|4, player: 1|2){
-		super(x, y, 32, 32, `../sprites/spells/default-spell-${tier}`);
+		super(x, y, 32, 32, `../sprites/spells/default-spell-${tier}.png`);
 		this.tier = tier;
 		this.player = player;
+		this._object.style.border = "1px solid black"
 	}
 
 	step() {
 		
-		this.y += this.vy * Game.deltaTime * this.player === 1? -1 : 1;
+		this.y += this.vy * Game.deltaTime * (this.player === 1? -1 : 1);
 		
 	}
 }

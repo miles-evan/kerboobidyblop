@@ -11,6 +11,7 @@ export default class Board extends GameObject {
 	step() {
 		if(Game.isKeyPressed("ArrowUp")) {
 			new Spell(0, 500, 2, 1);
+			console.log("spawned")
 		}
 	}
 	

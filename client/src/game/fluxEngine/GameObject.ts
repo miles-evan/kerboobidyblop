@@ -25,22 +25,31 @@ export default abstract class GameObject {
 	originY: number;
 	
 	
-	constructor(x=0, y=0, width=0, height=0, sprite="",
-	            { hitboxWidth, hitboxHeight, originX=0, originY=0 }: ObjectOptions = {}) {
+	protected constructor(x=0, y=0, width=0, height=0, sprite="",
+	                      { hitboxWidth, hitboxHeight, originX=0, originY=0 }: ObjectOptions = {}) {
 		this._object = document.createElement("div");
-		this._object.classList.add("game-object");
+		this._object.style.position = "absolute"
+		this._object.style.backgroundRepeat = "no-repeat"
+		this._object.style.backgroundSize = "100% 100%"
+		
 		this.originX = originX;
 		this.originY = originY;
+		
 		this.x = x;
 		this.y = y;
 		this.updatePosition();
+		
 		this.width = width;
 		this.height = height;
+		
 		this._object.style.backgroundImage = "url(" + sprite + ")";
+		
 		this.setHitbox(hitboxWidth, hitboxHeight);
+		
 		if(!Game.screen)
 			throw new Error("Maybe try making the screen first, jackass");
 		Game.screen.append(this._object);
+		
 		Game._addGameObjects(this);
 	}
 	

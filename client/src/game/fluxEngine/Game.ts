@@ -3,7 +3,7 @@ import GameObject from "./GameObject.ts";
 
 export default class Game {
 	static _gameObjects: GameObject[] = [];
-	static maxFrameRate: number = 1;
+	static maxFrameRate: number = 30;
 	static isRunning: boolean = false;
 	static screen: HTMLElement | null;
 	static screenWidth: number;
@@ -23,6 +23,7 @@ export default class Game {
 		Game.screen = screen;
 		Game.screenWidth = screen.clientWidth;
 		Game.screenHeight = screen.clientHeight;
+		screen.style.position = "relative";
 		
 		Game.onKeyDown = (e: KeyboardEvent) => {
 			if(!(e.key in Game.keysDown))
@@ -114,14 +115,12 @@ export default class Game {
 	}
 	
 	private static updateDeltaTime(): void {
-		// console.log(Game.lastFrameTimeStamp, Game.currentFrameTimeStamp);
 		Game.lastFrameTimeStamp = Game.currentFrameTimeStamp;
 		Game.currentFrameTimeStamp = Date.now();
 	}
 	
 	
 	private static doSteps() {
-		// console.log("tick start", Game.deltaTime)
 		Game.updateDeltaTime();
 		Game.globalStep();
 		Game._gameObjects.forEach(gameObject => gameObject.step());
@@ -130,6 +129,5 @@ export default class Game {
 			const timeSinceFrameStart = Date.now() - Game.currentFrameTimeStamp;
 			Game.timeoutId = setTimeout(Game.doSteps, Math.max(0, 1000 / Game.maxFrameRate - timeSinceFrameStart));
 		}
-		console.log("tick")
 	}
 }
