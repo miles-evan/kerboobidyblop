@@ -10,10 +10,10 @@ export default class Spell extends GameObject {
 	
 	tier: 1 | 2 | 3 | 4; // the spell's number
 	player: 1 | 2; // player 1 is bottom-up, player 2 is top-down
-	readonly vy = 0.1; // pixels per millisecond
+	readonly vy = 0.05; // pixels per millisecond
 
 	constructor(x: number, y: number, tier: 1|2|3|4, player: 1|2){
-		super(x, y, 32, 32, [s1, s2, s3, s4][tier-1]);
+		super(x, y, 64, 64, [s1, s2, s3, s4][tier-1]);
 		this.tier = tier;
 		this.player = player;
 	}

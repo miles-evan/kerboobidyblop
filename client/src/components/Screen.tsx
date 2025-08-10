@@ -6,7 +6,7 @@ export default function Screen({ screenRef, children }: { screenRef: any, childr
 	return (
 		<div ref={screenRef} style={{
 			border: "1px solid black",
-			height: 700,
+			height: 720,
 		}}>
 			{children}
 		</div>
