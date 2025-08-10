@@ -101,8 +101,19 @@ export default class Game {
 		return Game._gameObjects.some(other =>
 			other instanceof type
 			&& gameObject !== other
-			&& gameObject.collidedWith(other)
-		);
+			&& gameObject.collidedWith(other));
+	}
+	
+	
+	static objectCollidedWithTypeWho(gameObject: GameObject, type: GameObjectConstructor): GameObject[] {
+		const objectsCollidedWith: GameObject[] = []
+		Game._gameObjects.forEach(other => {
+			if(other instanceof type
+				&& gameObject !== other
+				&& gameObject.collidedWith(other))
+				objectsCollidedWith.push(other);
+		});
+		return objectsCollidedWith;
 	}
 	
 	
