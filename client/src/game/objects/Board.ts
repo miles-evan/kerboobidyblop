@@ -2,16 +2,19 @@ import GameObject from "../fluxEngine/GameObject.ts";
 import Game from "../fluxEngine/Game.ts";
 import Spell from "./Spell.ts";
 import boardSprite from "../sprites/board.png";
+import Player1 from "../players/Player1.ts";
+import RandomBotYo from "../players/RandomBotYo.ts";
 
 export default class Board extends GameObject {
-	
-	nextTier: 1 | 2 | 3 | 4 | null = null;
-	nextTierExpires: number = 0;
-	
+	player1: Player1;
+	randomBot: RandomBotYo;
+
 	constructor() {
 		super(0, 0, 256, 720, boardSprite);
 		this.middleX = Game.screenWidth / 2;
 		this.middleY = Game.screenHeight / 2;
+		this.player1 = new Player1();
+        this.randomBot = new RandomBotYo();
 	}
 	
 	getPositionOfTile(lane: number, rank: number): [number, number] {
@@ -21,31 +24,14 @@ export default class Board extends GameObject {
 	
 	step() {
 		
-		let tier: 1 | 2 | 3 | 4 | null = null;
-		let lane: 0 | 1 | 2 | null = null;
-		
-		if(Game.isKeyPressed("ArrowLeft")) {
-			tier = 1;
-			lane = 0;
-		} else if(Game.isKeyPressed("ArrowDown")) {
-			tier = 2;
-			lane = 1;
-		} else if(Game.isKeyPressed("ArrowRight")) {
-			tier = 3;
-			lane = 2;
-		} else if(Game.isKeyPressed("ArrowUp")) {
-			tier = 4;
-		} else if(Game.isKeyPressed("Control") || Date.now() > this.nextTierExpires) {
-			this.nextTier = null;
+		const player1Move = this.player1.makeMove();
+		if(player1Move){
+			const [player1Lane, player1Tier] = player1Move;
+			new Spell(...this.getPositionOfTile(player1Lane, 0), player1Lane, player1Tier, 1);
 		}
-		
-		if(this.nextTier !== null && lane !== null) {
-			new Spell(...this.getPositionOfTile(lane, 0), lane, this.nextTier, 1);
-			this.nextTier = null;
-		} else if(tier !== null) {
-			this.nextTier = tier;
-			this.nextTierExpires = Date.now() + 1000;
-		}
+
+		// const [randomLane, randomTier] = RandomBotYo.makeMove();
+		// new Spell(...this.getPositionOfTile(randomLane, 0), randomLane, randomTier, 2);
 		
 	}
 	
