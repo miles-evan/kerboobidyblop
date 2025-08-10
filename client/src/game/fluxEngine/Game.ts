@@ -1,7 +1,7 @@
-import { GameObject } from "./GameObject.ts";
+import GameObject from "./GameObject.ts";
 
 
-export class Game {
+export default class Game {
 	static _gameObjects: GameObject[] = [];
 	static maxFrameRate: number = 60;
 	static isRunning: boolean = false;

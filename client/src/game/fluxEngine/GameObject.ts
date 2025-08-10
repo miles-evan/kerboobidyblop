@@ -1,4 +1,4 @@
-import { Game } from "./Game.ts";
+import Game from "./Game.ts";
 
 
 type ObjectOptions = {
@@ -9,7 +9,7 @@ type ObjectOptions = {
 }
 
 
-export abstract class GameObject {
+export default abstract class GameObject {
 	
 	_object: HTMLDivElement;
 	left: number = 0;
