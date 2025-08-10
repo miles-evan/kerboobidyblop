@@ -42,7 +42,7 @@ export default abstract class GameObject {
 		this.width = width;
 		this.height = height;
 		
-		this._object.style.backgroundImage = "url(" + sprite + ")";
+		this.sprite = sprite;
 		
 		this.setHitbox(hitboxWidth, hitboxHeight);
 		
@@ -131,6 +131,11 @@ export default abstract class GameObject {
 	
 	get hitboxBottom() {
 		return this.top + this._hitboxBottom;
+	}
+	
+	
+	set sprite(sprite: string) {
+		this._object.style.backgroundImage = "url(" + sprite + ")";
 	}
 	
 	
