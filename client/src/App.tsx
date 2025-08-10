@@ -22,9 +22,7 @@ function App() {
 		<>
 			<h1>Kerboobidyblop 2</h1>
 			
-			<Screen screenRef={screenRef}>
-				<p>HI bro</p>
-			</Screen>
+			<Screen screenRef={screenRef}/>
 		</>
 	);
 }

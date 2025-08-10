@@ -3,7 +3,7 @@ import GameObject from "./GameObject.ts";
 
 export default class Game {
 	static _gameObjects: GameObject[] = [];
-	static maxFrameRate: number = 30;
+	static maxFrameRate: number = 60;
 	static isRunning: boolean = false;
 	static screen: HTMLElement | null;
 	static screenWidth: number;
@@ -23,6 +23,8 @@ export default class Game {
 		Game.screen = screen;
 		Game.screenWidth = screen.clientWidth;
 		Game.screenHeight = screen.clientHeight;
+		screen.style.position = "relative";
+		screen.style.overflow = "hidden";
 		screen.style.position = "relative";
 		
 		Game.onKeyDown = (e: KeyboardEvent) => {
