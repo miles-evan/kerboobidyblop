@@ -21,6 +21,7 @@ export default class Spell extends GameObject {
 	step() {
 		
 		this.y += this.vy * Game.deltaTime * (this.player === 1? -1 : 1);
-		
+		if(this.top > Game.screenHeight || this.bottom < 0)
+			this.destroy();
 	}
 }

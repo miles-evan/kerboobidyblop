@@ -89,6 +89,20 @@ export default abstract class GameObject {
 		this.top = bottom - this.height;
 	}
 	
+	get middleX() {
+		return (this.left + this.right) / 2;
+	}
+	set middleX(middleX) {
+		this.left = middleX - this.width / 2;
+	}
+	
+	get middleY() {
+		return (this.top + this.bottom) / 2;
+	}
+	set middleY(middleY) {
+		this.top = middleY - this.height / 2;
+	}
+	
 	get width() {
 		return this.#width;
 	}
@@ -152,7 +166,7 @@ export default abstract class GameObject {
 	}
 	
 	
-	kill() {
+	destroy() {
 		Game._removeGameObject(this);
 	}
 	

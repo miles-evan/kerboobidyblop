@@ -16,10 +16,13 @@ export default class Game {
 	private static onKeyUp: (e: KeyboardEvent) => void;
 	private static onTouchStart: (e: TouchEvent) => void;
 	private static onTouchEnd: (e: TouchEvent) => void;
+	static #frameCount: number = 0;
 	static globalStep = () => {};
 	
 	
-	static init(screen: HTMLElement) {
+	static init(screen: HTMLElement): boolean {
+		if(Game.screen) return false;
+		
 		Game.screen = screen;
 		Game.screenWidth = screen.clientWidth;
 		Game.screenHeight = screen.clientHeight;
@@ -45,17 +48,21 @@ export default class Game {
 		window.addEventListener("keyup", Game.onKeyUp);
 		screen.addEventListener("touchstart", Game.onTouchStart);
 		screen.addEventListener("touchend", Game.onTouchEnd);
+		
+		return true;
 	}
 	
-	static destroy() {
+	static destroy(): boolean {
 		Game.stop();
-		if(!Game.screen) return;
+		if(!Game.screen) return false;
 		window.removeEventListener("keydown", Game.onKeyDown);
 		window.removeEventListener("keyup", Game.onKeyUp);
 		Game.screen.removeEventListener("touchstart", Game.onTouchStart);
 		Game.screen.removeEventListener("touchend", Game.onTouchEnd);
 		Game.screen = null;
+		Game._gameObjects.forEach(gameObject => gameObject.destroy());
 		Game._gameObjects = [];
+		return true;
 	}
 	
 	
@@ -74,10 +81,11 @@ export default class Game {
 	}
 	
 	
-	static start(): void {
-		if(Game.isRunning) return;
+	static start(): boolean {
+		if(Game.isRunning) return false;
 		Game.isRunning = true;
 		Game.doSteps();
+		return true;
 	}
 	
 	static stop(): void {
@@ -122,6 +130,11 @@ export default class Game {
 	}
 	
 	
+	static get frameCount() {
+		return Game.#frameCount;
+	}
+	
+	
 	private static doSteps() {
 		Game.updateDeltaTime();
 		Game.globalStep();
@@ -131,5 +144,6 @@ export default class Game {
 			const timeSinceFrameStart = Date.now() - Game.currentFrameTimeStamp;
 			Game.timeoutId = setTimeout(Game.doSteps, Math.max(0, 1000 / Game.maxFrameRate - timeSinceFrameStart));
 		}
+		Game.#frameCount ++;
 	}
 }
