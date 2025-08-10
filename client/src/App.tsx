@@ -1,7 +1,8 @@
 import { useEffect, useRef } from 'react'
 import './App.css'
-import { Game } from "./game/fluxEngine/Game.ts";
+import Game from "./game/fluxEngine/Game.ts";
 import Screen from "./components/Screen.tsx"
+import { loadRoom1 } from "./game/rooms/room1.ts";
 
 
 function App() {
@@ -12,6 +13,7 @@ function App() {
 		if(!screenRef.current) return;
 		Game.init(screenRef.current);
 		Game.start();
+		loadRoom1();
 		return () => Game.destroy();
 	}, []);
 	
@@ -28,4 +30,4 @@ function App() {
 }
 
 
-export default App
+export default App;

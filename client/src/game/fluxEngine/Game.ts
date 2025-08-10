@@ -3,7 +3,7 @@ import GameObject from "./GameObject.ts";
 
 export default class Game {
 	static _gameObjects: GameObject[] = [];
-	static maxFrameRate: number = 60;
+	static maxFrameRate: number = 1;
 	static isRunning: boolean = false;
 	static screen: HTMLElement | null;
 	static screenWidth: number;
@@ -11,6 +11,7 @@ export default class Game {
 	private static keysDown: Record<Key, number> = {};
 	private static lastFrameTimeStamp = 0;
 	private static currentFrameTimeStamp = 0;
+	private static timeoutId: number | null = null;
 	private static onKeyDown: (e: KeyboardEvent) => void;
 	private static onKeyUp: (e: KeyboardEvent) => void;
 	private static onTouchStart: (e: TouchEvent) => void;
@@ -78,6 +79,10 @@ export default class Game {
 	
 	static stop(): void {
 		Game.isRunning = false;
+		if(Game.timeoutId) {
+			clearTimeout(Game.timeoutId);
+			Game.timeoutId = null;
+		}
 	}
 	
 	
@@ -103,23 +108,28 @@ export default class Game {
 	
 	
 	static get deltaTime(): number {
-		if(Game.lastFrameTimeStamp === 0)
-			return 1000 / Game.maxFrameRate;
-		return Game.currentFrameTimeStamp - Game.lastFrameTimeStamp;
+		return Game.lastFrameTimeStamp?
+			Game.currentFrameTimeStamp - Game.lastFrameTimeStamp
+			: 1000 / Game.maxFrameRate;
 	}
 	
 	private static updateDeltaTime(): void {
+		// console.log(Game.lastFrameTimeStamp, Game.currentFrameTimeStamp);
 		Game.lastFrameTimeStamp = Game.currentFrameTimeStamp;
 		Game.currentFrameTimeStamp = Date.now();
 	}
 	
 	
 	private static doSteps() {
+		// console.log("tick start", Game.deltaTime)
+		Game.updateDeltaTime();
 		Game.globalStep();
 		Game._gameObjects.forEach(gameObject => gameObject.step());
 		Game._gameObjects.forEach(gameObject => gameObject.updatePosition());
-		Game.updateDeltaTime();
-		if(Game.isRunning)
-			setTimeout(Game.doSteps, Math.max(0, 1000 / Game.maxFrameRate - Game.deltaTime));
+		if(Game.isRunning) {
+			const timeSinceFrameStart = Date.now() - Game.currentFrameTimeStamp;
+			Game.timeoutId = setTimeout(Game.doSteps, Math.max(0, 1000 / Game.maxFrameRate - timeSinceFrameStart));
+		}
+		console.log("tick")
 	}
 }
