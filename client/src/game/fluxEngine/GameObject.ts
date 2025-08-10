@@ -166,6 +166,11 @@ export default abstract class GameObject {
 	}
 	
 	
+	collidedWithTypeWho(type: GameObjectConstructor): GameObject[] {
+		return Game.objectCollidedWithTypeWho(this, type);
+	}
+	
+	
 	destroy() {
 		Game._removeGameObject(this);
 	}
