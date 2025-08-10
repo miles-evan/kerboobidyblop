@@ -5,6 +5,9 @@ import boardSprite from "../sprites/board.png";
 
 export default class Board extends GameObject {
 	
+	nextTier: 1 | 2 | 3 | 4 | null = null;
+	nextTierExpires: number = 0;
+	
 	constructor() {
 		super(0, 0, 256, 720, boardSprite);
 		this.middleX = Game.screenWidth / 2;
@@ -17,15 +20,33 @@ export default class Board extends GameObject {
 	}
 	
 	step() {
-		if(Game.isKeyPressed("ArrowDown")) {
-			new Spell(...this.getPositionOfTile(1, 0), 2, 1);
-		}
+		
+		let tier: 1 | 2 | 3 | 4 | null = null;
+		let lane: 0 | 1 | 2 | null = null;
+		
 		if(Game.isKeyPressed("ArrowLeft")) {
-			new Spell(...this.getPositionOfTile(0, 0), 2, 1);
+			tier = 1;
+			lane = 0;
+		} else if(Game.isKeyPressed("ArrowDown")) {
+			tier = 2;
+			lane = 1;
+		} else if(Game.isKeyPressed("ArrowRight")) {
+			tier = 3;
+			lane = 2;
+		} else if(Game.isKeyPressed("ArrowUp")) {
+			tier = 4;
+		} else if(Game.isKeyPressed("Control") || Date.now() > this.nextTierExpires) {
+			this.nextTier = null;
 		}
-		if(Game.isKeyPressed("ArrowRight")) {
-			new Spell(...this.getPositionOfTile(2, 0), 2, 1);
+		
+		if(this.nextTier !== null && lane !== null) {
+			new Spell(...this.getPositionOfTile(lane, 0), lane, this.nextTier, 1);
+			this.nextTier = null;
+		} else if(tier !== null) {
+			this.nextTier = tier;
+			this.nextTierExpires = Date.now() + 1000;
 		}
+		
 	}
 	
 }

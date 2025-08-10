@@ -4,14 +4,11 @@ import { loadRoom1 } from "../game/rooms/room1.ts";
 
 
 export default function Screen({ children }: { children?: ReactElement }) {
-	console.log("screen")
-	console.trace();
+	
 	const screenRef = useRef<HTMLDivElement>(null);
 	
 	
 	useEffect(() => {
-		console.log("useEffect")
-		console.trace()
 		const cleanup = () => {Game.destroy();};
 		
 		if(!screenRef.current) return cleanup;
