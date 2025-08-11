@@ -8,8 +8,8 @@ import s4 from "../sprites/spells/default-spell-4.png";
 
 export default class Spell extends GameObject {
 	
-	lane: 0 | 1 | 2;
-	tier: 1 | 2 | 3 | 4; // the spell's number
+	lane: Lane;
+	tier: Tier; // the spell's number
 	player: 1 | 2; // player 1 is bottom-up, player 2 is top-down
 	static readonly vy = 0.05; // pixels per millisecond
 	static readonly framesPerTick = Math.round(64 / Spell.vy / 1000 * Game.maxFrameRate);
