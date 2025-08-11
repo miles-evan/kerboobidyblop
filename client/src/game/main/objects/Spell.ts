@@ -1,5 +1,5 @@
-import GameObject from "../fluxEngine/GameObject";
-import Game from "../fluxEngine/Game.ts";
+import GameObject from "../../engine/GameObject.ts";
+import Game from "../../engine/Game.ts";
 import s1 from "../sprites/spells/default-spell-1.png";
 import s2 from "../sprites/spells/default-spell-2.png";
 import s3 from "../sprites/spells/default-spell-3.png";

@@ -1,13 +1,15 @@
-import type PlayerInterface from "./PlayerInterface";
-import Game from "../fluxEngine/Game";
-export default class Player1 implements PlayerInterface {
+import type MoveHandler from "./MoveHandler.ts";
+import Game from "../../engine/Game.ts";
+export default class KeyboardInputPlayer implements MoveHandler {
 
-	nextTier: 1 | 2 | 3 | 4 | null = null;
+	nextTier: Tier | null = null;
 	nextTierExpires: number = 0;
 
 	makeMove(): [Lane, Tier] | null {
-		let tier: 1 | 2 | 3 | 4 | null = null;
-		let lane: 0 | 1 | 2 | null = null;
+		let tier: Tier | null = null;
+		let lane: Lane | null = null;
+		
+		// set tier first, then lane (when playing the game)
 		
 		if(Game.isKeyPressed("ArrowLeft")) {
 			tier = 1;
@@ -23,17 +25,16 @@ export default class Player1 implements PlayerInterface {
 		} else if(Game.isKeyPressed("Control") || Date.now() > this.nextTierExpires) {
 			this.nextTier = null;
 		}
-
 		
 		if(this.nextTier !== null && lane !== null) {
+			const move: [Lane, Tier] = [lane, this.nextTier];
 			this.nextTier = null;
-			return [lane, tier] as [Lane, Tier];
+			return move;
 		} else if(tier !== null) {
 			this.nextTier = tier;
 			this.nextTierExpires = Date.now() + 1000;
 		}
 		return null;
 	}
-
 
 }

@@ -1,6 +1,6 @@
 import { type ReactElement, useEffect, useRef } from "react";
-import Game from "../game/fluxEngine/Game.ts";
-import { loadRoom1 } from "../game/rooms/room1.ts";
+import Game from "../game/engine/Game.ts";
+import { loadRoom1 } from "../game/main/rooms/room1.ts";
 
 
 export default function Screen({ children }: { children?: ReactElement }) {
@@ -15,6 +15,7 @@ export default function Screen({ children }: { children?: ReactElement }) {
 		if(!Game.init(screenRef.current)) return cleanup;
 		if(!Game.start()) return cleanup;
 		loadRoom1();
+		
 		return cleanup;
 	}, []);
 	
