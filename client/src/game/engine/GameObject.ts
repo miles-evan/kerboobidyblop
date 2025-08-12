@@ -161,13 +161,13 @@ export default abstract class GameObject {
 	}
 	
 	
-	collidedWithType(type: GameObjectConstructor): boolean {
+	collidedWithType(type: Constructor<GameObject>): boolean {
 		return Game.objectCollidedWithType(this, type);
 	}
 	
 	
-	collidedWithTypeWho(type: GameObjectConstructor): GameObject[] {
-		return Game.objectCollidedWithTypeWho(this, type);
+	getCollisionsWithType<T extends GameObject>(type: Constructor<T>): T[] {
+		return Game.getObjectsCollisionsWithType(this, type);
 	}
 	
 	

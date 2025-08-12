@@ -9,25 +9,26 @@ import s4 from "../sprites/spells/default-spell-4.png";
 export default class Spell extends GameObject {
 	
 	lane: Lane;
-	tier: Tier; // the spell's number
-	player: 1 | 2; // player 1 is bottom-up, player 2 is top-down
+	readonly tier: Tier; // the spell's number
+	readonly playerNum: PlayerNum; // player 1 is bottom-up, player 2 is top-down
+	moving: boolean = false; // whether it's moving (only starts moving on tick start)
 	static readonly vy = 0.05; // pixels per millisecond
 	static readonly framesPerTick = Math.round(64 / Spell.vy / 1000 * Game.maxFrameRate);
-	moving: boolean = false; // whether it's moving (only starts moving on tick start)
 
-	constructor(x: number, y: number, lane: 0|1|2, tier: 1|2|3|4, player: 1|2){
+	constructor(x: number, y: number, lane: Lane, tier: Tier, playerNum: PlayerNum){
 		super(x, y, 64, 64, [s1, s2, s3, s4][tier-1]);
 		this.lane = lane;
 		this.tier = tier;
-		this.player = player;
+		this.playerNum = playerNum;
 	}
 
 	step() {
 		
 		if(Game.frameCount % Spell.framesPerTick === 0)
 			this.moving = true;
+		
 		if(this.moving) {
-			this.y += Spell.vy * Game.deltaTime * (this.player === 1? -1 : 1);
+			this.y += Spell.vy * Game.deltaTime * (this.playerNum === 1? -1 : 1);
 			if(this.top > Game.screenHeight || this.bottom < 0)
 				this.destroy();
 		}
