@@ -29,10 +29,10 @@ export default class Board extends GameObject {
 			new Spell(...this.getPositionOfTile(player1Lane, 0), player1Lane, player1Tier, 1);
 		}
 		
-		const player2Move = this.player1.makeMove();
+		const player2Move = this.player2.makeMove();
 		if(player2Move){
 			const [player2Lane, player2Tier] = player2Move;
-			new Spell(...this.getPositionOfTile(player2Lane, 0), player2Lane, player2Tier, 2);
+			new Spell(...this.getPositionOfTile(player2Lane, 9), player2Lane, player2Tier, 2);
 		}
 		
 	}
