@@ -1,5 +1,6 @@
 import GameObject from "../../engine/GameObject.ts";
 import Game from "../../engine/Game.ts";
+import SpellTrail from "./SpellTrail.ts";
 
 
 export default class Spell extends GameObject {
@@ -71,6 +72,9 @@ export default class Spell extends GameObject {
 			this.y += Spell.vy * Game.deltaTime * (this.playerNum === 1? -1 : 1);
 			if(this.top > Game.screenHeight || this.bottom < 0)
 				this.destroy();
+			
+			if(Game.frameCount % Math.round(Spell.framesPerTick / 16))
+				new SpellTrail(this);
 		}
 		
 	}

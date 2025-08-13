@@ -14,6 +14,7 @@ export default class Board extends GameObject {
 		this.middleY = Game.screenHeight / 2;
 		this.player1 = player1;
 		this.player2 = player2;
+		this.depth = 2;
 	}
 	
 	getPositionOfTile(lane: Lane, rank: Rank): [number, number] {
