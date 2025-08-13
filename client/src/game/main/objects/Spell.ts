@@ -35,7 +35,6 @@ export default class Spell extends GameObject {
 	}
 
 	retreater = () => {
-		console.log("tsdksa")
 		const colliders = this.getCollisionsWithType(Spell);
 		colliders.forEach(collider => {
 			if(collider.kills(this)){
