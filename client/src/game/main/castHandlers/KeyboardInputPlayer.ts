@@ -23,6 +23,7 @@ export default class KeyboardInputPlayer implements CastHandler {
 			lane = 2;
 		} else if(Game.isKeyPressed("ArrowUp")) {
 			tier = 4;
+			lane = 1;
 		} else if(Game.isKeyPressed("Control") || Date.now() > this.nextTierExpires) {
 			this.nextTier = null;
 		}
