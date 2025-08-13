@@ -97,7 +97,7 @@ export default class Game {
 	}
 	
 	
-	static objectCollidedWithType(gameObject: GameObject, type: GameObjectConstructor): boolean {
+	static objectCollidedWithType(gameObject: GameObject, type: Constructor<GameObject>): boolean {
 		return Game._gameObjects.some(other =>
 			other instanceof type
 			&& gameObject !== other
@@ -105,8 +105,8 @@ export default class Game {
 	}
 	
 	
-	static objectCollidedWithTypeWho(gameObject: GameObject, type: GameObjectConstructor): GameObject[] {
-		const objectsCollidedWith: GameObject[] = []
+	static getObjectsCollisionsWithType<T extends GameObject>(gameObject: GameObject, type: Constructor<T>): T[] {
+		const objectsCollidedWith: T[] = [];
 		Game._gameObjects.forEach(other => {
 			if(other instanceof type
 				&& gameObject !== other
