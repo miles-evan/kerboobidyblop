@@ -30,16 +30,16 @@ export default class Spell extends GameObject {
 		this.lane = lane;
 		this.tier = tier;
 		this.playerNum = playerNum;
-		this.powers = [this.dodger];
+		this.powers = [this.retreater];
 	}
 
-	dodger = () => {
+	retreater = () => {
 		const colliders = Game.getObjectsCollisionsWithType(this, Spell);
 		colliders.forEach(collider => {
 			if(collider.kills(this)){
 				this.y += (this.playerNum === 1 ? 1 : -1) * 100;
 				// Remove the power once it's used once
-				this.powers = this.powers.filter(power => power !== this.dodger);
+				this.powers = this.powers.filter(power => power !== this.retreater);
 			}
 		});
 	}
