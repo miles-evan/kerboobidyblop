@@ -15,6 +15,13 @@ export default class Spell extends GameObject {
 	static readonly vy = 0.05; // pixels per millisecond
 	static readonly framesPerTick = Math.round(64 / Spell.vy / 1000 * Game.maxFrameRate);
 
+	tierEliminationMap = { // map of which spells beat who
+		1: [4],
+		2: [1],
+		3: [2, 1],
+		4: [3, 2, 1] 
+	};
+
 	constructor(x: number, y: number, lane: Lane, tier: Tier, playerNum: PlayerNum){
 		super(x, y, 64, 64, [s1, s2, s3, s4][tier-1]);
 		this.lane = lane;
@@ -22,8 +29,18 @@ export default class Spell extends GameObject {
 		this.playerNum = playerNum;
 	}
 
+	handleCollisions() {
+		const colliders = Game.getObjectsCollisionsWithType(this, Spell)
+		colliders.forEach(collider => {
+			if(this.tierEliminationMap[this.tier].includes(collider.tier)){
+				collider.destroy();
+			}
+		});
+	}
+
 	step() {
-		
+		this.handleCollisions();
+
 		if(Game.frameCount % Spell.framesPerTick === 0)
 			this.moving = true;
 		
