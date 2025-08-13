@@ -19,10 +19,11 @@ export default class Spell extends GameObject {
 		1: [4],
 		2: [1],
 		3: [2, 1],
-		4: [3, 2, 1] 
+		4: [3, 2, 1],
 	};
+
 	// powers are function pointers that are called in order at the start of each step.
-	powers: Array<() => void> = [];
+	power: (() => void) | null = null;
 
 
 	constructor(x: number, y: number, lane: Lane, tier: Tier, playerNum: PlayerNum){
@@ -30,16 +31,15 @@ export default class Spell extends GameObject {
 		this.lane = lane;
 		this.tier = tier;
 		this.playerNum = playerNum;
-		this.powers = [this.retreater];
+		this.power = this.retreater;
 	}
 
 	retreater = () => {
-		const colliders = Game.getObjectsCollisionsWithType(this, Spell);
+		console.log("tsdksa")
+		const colliders = this.getCollisionsWithType(Spell);
 		colliders.forEach(collider => {
 			if(collider.kills(this)){
 				this.y += (this.playerNum === 1 ? 1 : -1) * 100;
-				// Remove the power once it's used once
-				this.powers = this.powers.filter(power => power !== this.retreater);
 			}
 		});
 	}
@@ -52,7 +52,7 @@ export default class Spell extends GameObject {
 
 
 	handleCollisions() {
-		const colliders = Game.getObjectsCollisionsWithType(this, Spell);
+		const colliders = this.getCollisionsWithType(Spell);
 		colliders.forEach(collider => {
 			if(this.kills(collider)) {
 				collider.destroy();
@@ -61,7 +61,7 @@ export default class Spell extends GameObject {
 	}
 
 	step() {
-		this.powers.forEach(power => power());
+		this.power?.();
 
 		this.handleCollisions();
 
