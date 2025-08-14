@@ -11,8 +11,8 @@ export default class Spell extends GameObject {
 	moving: boolean = false; // whether it's moving (only starts moving on tick start)
 	moveDirection: 1 | -1;
 	power: (() => void) | null = null;
-	static readonly vy = 0.05; // pixels per millisecond
-	static readonly framesPerTick = Math.round(64 / Spell.vy / 1000 * Game.maxFrameRate);
+	static readonly velocity = 0.025; // pixels per millisecond
+	static readonly framesPerTick = Math.round(64 / Spell.velocity / 1000 * Game.maxFrameRate);
 	
 	constructor(x: number, y: number, lane: Lane, tier: Tier, playerNum: PlayerNum, power: Power = "none") {
 		super(x, y, 64, 64, `/src/game/main/sprites/spells/spell-player${playerNum}-tier${tier}.png`);
@@ -31,7 +31,7 @@ export default class Spell extends GameObject {
 		4: [3, 2],
 	};
 	
-	// Returns true if this kills collider
+	// returns true if this kills collider
 	kills(other: Spell): boolean {
 		return other.playerNum !== this.playerNum
 			&& Spell.tierEliminationMap[this.tier].includes(other.tier);
@@ -77,7 +77,7 @@ export default class Spell extends GameObject {
 			this.moving = true;
 		
 		if(this.moving) {
-			this.y += Spell.vy * Game.deltaTime * this.moveDirection;
+			this.y += Spell.velocity * Game.deltaTime * this.moveDirection;
 			if(this.top > Game.screenHeight || this.bottom < 0)
 				this.destroy();
 			

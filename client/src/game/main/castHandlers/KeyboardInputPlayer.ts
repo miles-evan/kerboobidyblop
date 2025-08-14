@@ -16,19 +16,19 @@ export default class KeyboardInputPlayer implements CastHandler {
 		
 		// set tier first, then power, then lane (when playing the game)
 		
-		if(Game.isKeyPressed("ArrowLeft")) {
+		if(Game.isKeyPressed("ArrowLeft") || Game.isKeyPressed("1")) {
 			tier = 1;
 			lane = 0;
 			power = "dodger";
-		} else if(Game.isKeyPressed("ArrowDown")) {
+		} else if(Game.isKeyPressed("ArrowDown") || Game.isKeyPressed("2")) {
 			tier = 2;
 			lane = 1;
 			power = "retreater";
-		} else if(Game.isKeyPressed("ArrowRight")) {
+		} else if(Game.isKeyPressed("ArrowRight") || Game.isKeyPressed("3")) {
 			tier = 3;
 			lane = 2;
 			power = "hopper";
-		} else if(Game.isKeyPressed("ArrowUp")) {
+		} else if(Game.isKeyPressed("ArrowUp") || Game.isKeyPressed("4")) {
 			tier = 4;
 			lane = 1;
 			power = "none";
