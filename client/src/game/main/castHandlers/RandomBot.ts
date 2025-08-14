@@ -5,7 +5,7 @@ export default class RandomBot implements CastHandler {
 	
 	chanceOfMoving: number;
 	
-	constructor(chanceOfMoving: number = 0.005) {
+	constructor(chanceOfMoving: number = 0.002) {
 		this.chanceOfMoving = chanceOfMoving;
 	}
 	
