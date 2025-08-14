@@ -32,8 +32,9 @@ export default class Spell extends GameObject {
 	};
 	
 	// Returns true if this kills collider
-	kills(collider: Spell): boolean {
-		return Spell.tierEliminationMap[this.tier].includes(collider.tier);
+	kills(other: Spell): boolean {
+		return other.playerNum !== this.playerNum
+			&& Spell.tierEliminationMap[this.tier].includes(other.tier);
 	}
 
 	retreater(): void {
