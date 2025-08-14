@@ -38,7 +38,10 @@ export default class Spell extends GameObject {
 	}
 
 	retreater(): void {
-		this.moveDirection = this.playerNum === 1? -1 : 1; // set to forward
+		// set to forward, only if lined up with a tile and not colliding with an ally
+		if(Game.frameCount % Spell.framesPerTick === 0
+			&& !this.getCollisionsWithType(Spell).some(collider => this.playerNum === collider.playerNum))
+			this.moveDirection = this.playerNum === 1? -1 : 1;
 		
 		const colliders: Spell[] = this.getCollisionsWithType(Spell, this.x, this.y + 64 * this.moveDirection);
 		colliders.forEach(collider => {
@@ -69,8 +72,8 @@ export default class Spell extends GameObject {
 		this.power?.();
 
 		this.handleCollisions();
-
-		if(Game.frameCount % Spell.framesPerTick === 0)
+		
+		if(Game.frameCount % Spell.framesPerTick === 0) // start moving when lined up with a tile
 			this.moving = true;
 		
 		if(this.moving) {
