@@ -7,10 +7,10 @@ export default class Spell extends GameObject {
 	
 	lane: Lane;
 	readonly tier: Tier; // the spell's number
+	power: Power;
 	readonly playerNum: PlayerNum; // player 1 is bottom-up, player 2 is top-down
 	moving: boolean = false; // whether it's moving (only starts moving on tick start)
 	moveDirection: 1 | -1;
-	power: (() => void) | null = null;
 	static readonly velocity = 0.025; // pixels per millisecond
 	static readonly framesPerTick = Math.round(64 / Spell.velocity / 1000 * Game.maxFrameRate);
 	
@@ -20,8 +20,7 @@ export default class Spell extends GameObject {
 		this.tier = tier;
 		this.playerNum = playerNum;
 		this.moveDirection = playerNum === 1? -1 : 1;
-		if(power !== "none")
-			this.power = this[power];
+		this.power = power;
 	}
 
 	static readonly tierEliminationMap = { // map of which spells beat who
@@ -69,7 +68,8 @@ export default class Spell extends GameObject {
 	}
 
 	step(): void {
-		this.power?.();
+		if(this.power !== "none")
+			this[this.power]();
 
 		this.handleCollisions();
 		
