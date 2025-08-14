@@ -9,6 +9,7 @@ export default class Spell extends GameObject {
 	readonly tier: Tier; // the spell's number
 	readonly playerNum: PlayerNum; // player 1 is bottom-up, player 2 is top-down
 	moving: boolean = false; // whether it's moving (only starts moving on tick start)
+	moveDirection: 1 | -1;
 	power: (() => void) | null = null;
 	static readonly vy = 0.05; // pixels per millisecond
 	static readonly framesPerTick = Math.round(64 / Spell.vy / 1000 * Game.maxFrameRate);
@@ -18,6 +19,7 @@ export default class Spell extends GameObject {
 		this.lane = lane;
 		this.tier = tier;
 		this.playerNum = playerNum;
+		this.moveDirection = playerNum === 1? -1 : 1;
 		if(power !== "none")
 			this.power = this[power];
 	}
@@ -35,10 +37,12 @@ export default class Spell extends GameObject {
 	}
 
 	retreater(): void {
+		this.moveDirection = this.playerNum === 1? -1 : 1; // set to forward
+		
 		const colliders = this.getCollisionsWithType(Spell);
 		colliders.forEach(collider => {
 			if(collider.kills(this))
-				this.y += (this.playerNum === 1 ? 1 : -1) * 100;
+				this.moveDirection = this.playerNum === 1? 1 : -1; // turn around
 		});
 	}
 	
@@ -69,7 +73,7 @@ export default class Spell extends GameObject {
 			this.moving = true;
 		
 		if(this.moving) {
-			this.y += Spell.vy * Game.deltaTime * (this.playerNum === 1? -1 : 1);
+			this.y += Spell.vy * Game.deltaTime * this.moveDirection;
 			if(this.top > Game.screenHeight || this.bottom < 0)
 				this.destroy();
 			

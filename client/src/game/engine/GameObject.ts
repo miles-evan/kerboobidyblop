@@ -172,7 +172,7 @@ export default abstract class GameObject {
 	}
 	
 	
-	collidedWith(other: GameObject) {
+	collidedWith(other: GameObject): boolean {
 		return this.hitboxRight > other.hitboxLeft
 			&& this.hitboxLeft < other.hitboxRight
 			&& this.hitboxBottom > other.hitboxTop
@@ -187,6 +187,19 @@ export default abstract class GameObject {
 	
 	getCollisionsWithType<T extends GameObject>(type: Constructor<T>): T[] {
 		return Game.getObjectsCollisionsWithType(this, type);
+	}
+	
+	
+	withTempPosition<T>(x: number, y: number, fn: (...args: any[]) => T): T {
+		const [originalX, originalY] = [this.x, this.y];
+		if(x !== undefined && y !== undefined)
+			[this.x, this.y] = [x, y];
+		
+		const result: any = fn();
+		
+		[this.x, this.y] = [originalX, originalY];
+		
+		return result;
 	}
 	
 	
