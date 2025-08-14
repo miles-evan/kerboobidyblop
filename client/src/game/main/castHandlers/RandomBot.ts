@@ -1,7 +1,7 @@
-import type MoveHandler from "./MoveHandler.ts";
+import type CastHandler from "./CastHandler.ts";
 
 
-export default class RandomBot implements MoveHandler {
+export default class RandomBot implements CastHandler {
 	
 	chanceOfMoving: number;
 	
@@ -9,7 +9,7 @@ export default class RandomBot implements MoveHandler {
 		this.chanceOfMoving = chanceOfMoving;
 	}
 	
-	makeMove(): [Lane, Tier] | null {
+	castSpell(): [Lane, Tier] | null {
 		if(Math.random() > this.chanceOfMoving)
 			return null;
 		

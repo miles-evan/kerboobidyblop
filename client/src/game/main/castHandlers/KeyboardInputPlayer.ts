@@ -1,11 +1,12 @@
-import type MoveHandler from "./MoveHandler.ts";
+import type CastHandler from "./CastHandler.ts";
 import Game from "../../engine/Game.ts";
-export default class KeyboardInputPlayer implements MoveHandler {
+export default class KeyboardInputPlayer implements CastHandler {
 
 	nextTier: Tier | null = null;
 	nextTierExpires: number = 0;
-
-	makeMove(): [Lane, Tier] | null {
+	expireDuration: number = 750;
+	
+	castSpell(): [Lane, Tier] | null {
 		let tier: Tier | null = null;
 		let lane: Lane | null = null;
 		
@@ -22,6 +23,7 @@ export default class KeyboardInputPlayer implements MoveHandler {
 			lane = 2;
 		} else if(Game.isKeyPressed("ArrowUp")) {
 			tier = 4;
+			lane = 1;
 		} else if(Game.isKeyPressed("Control") || Date.now() > this.nextTierExpires) {
 			this.nextTier = null;
 		}
@@ -32,7 +34,7 @@ export default class KeyboardInputPlayer implements MoveHandler {
 			return move;
 		} else if(tier !== null) {
 			this.nextTier = tier;
-			this.nextTierExpires = Date.now() + 1000;
+			this.nextTierExpires = Date.now() + this.expireDuration;
 		}
 		return null;
 	}
