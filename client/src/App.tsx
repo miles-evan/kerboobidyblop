@@ -1,20 +1,11 @@
 import './App.css'
 import Screen from "./components/Screen.tsx"
 
-
-function App() {
-	
-	
-	
-	
+export default function App() {
 	return (
 		<>
-			<h1>Kerboobidyblop 3</h1>
-			
+			<h1>Kerboobidyblop 4</h1>
 			<Screen/>
 		</>
 	);
 }
-
-
-export default App;

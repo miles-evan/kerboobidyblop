@@ -5,12 +5,12 @@ export default class Game {
 	static _gameObjects: GameObject[] = [];
 	static maxFrameRate: number = 60;
 	static isRunning: boolean = false;
-	static screen: HTMLElement | null;
+	static _screen: HTMLElement | null;
 	static screenWidth: number;
 	static screenHeight: number;
 	private static keysDown: Record<Key, number> = {};
-	private static lastFrameTimeStamp = 0;
-	private static currentFrameTimeStamp = 0;
+	private static lastFrameTimeStamp: number = 0;
+	private static currentFrameTimeStamp: number = 0;
 	private static timeoutId: number | null = null;
 	private static onKeyDown: (e: KeyboardEvent) => void;
 	private static onKeyUp: (e: KeyboardEvent) => void;
@@ -21,9 +21,9 @@ export default class Game {
 	
 	
 	static init(screen: HTMLElement): boolean {
-		if(Game.screen) return false;
+		if(Game._screen) return false;
 		
-		Game.screen = screen;
+		Game._screen = screen;
 		Game.screenWidth = screen.clientWidth;
 		Game.screenHeight = screen.clientHeight;
 		screen.style.position = "relative";
@@ -54,12 +54,12 @@ export default class Game {
 	
 	static destroy(): boolean {
 		Game.stop();
-		if(!Game.screen) return false;
+		if(!Game._screen) return false;
 		window.removeEventListener("keydown", Game.onKeyDown);
 		window.removeEventListener("keyup", Game.onKeyUp);
-		Game.screen.removeEventListener("touchstart", Game.onTouchStart);
-		Game.screen.removeEventListener("touchend", Game.onTouchEnd);
-		Game.screen = null;
+		Game._screen.removeEventListener("touchstart", Game.onTouchStart);
+		Game._screen.removeEventListener("touchend", Game.onTouchEnd);
+		Game._screen = null;
 		Game._gameObjects.forEach(gameObject => gameObject.destroy());
 		Game._gameObjects = [];
 		return true;
@@ -135,6 +135,13 @@ export default class Game {
 		if(timePressed === undefined)
 			return false;
 		return timePressed >= Game.lastFrameTimeStamp && timePressed <= Game.currentFrameTimeStamp;
+	}
+	
+	
+	static get virtualScreenSizeMultiplier(): number {
+		if(!Game._screen)
+			throw new Error("Must initialize screen");
+		return Game._screen.clientHeight / Game.screenHeight;
 	}
 	
 	
