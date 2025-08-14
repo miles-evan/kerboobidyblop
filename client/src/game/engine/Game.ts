@@ -109,7 +109,6 @@ export default class Game {
 		})
 	}
 	
-	
 	static getObjectsCollisionsWithType<T extends GameObject>(
 		gameObject: GameObject, type: Constructor<T>, x?: number, y?: number
 	): T[] {

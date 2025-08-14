@@ -32,14 +32,14 @@ export default class Spell extends GameObject {
 	};
 	
 	// Returns true if this kills collider
-	kills(collider: Spell) {
+	kills(collider: Spell): boolean {
 		return Spell.tierEliminationMap[this.tier].includes(collider.tier);
 	}
 
 	retreater(): void {
 		this.moveDirection = this.playerNum === 1? -1 : 1; // set to forward
 		
-		const colliders = this.getCollisionsWithType(Spell);
+		const colliders: Spell[] = this.getCollisionsWithType(Spell, this.x, this.y + 64 * this.moveDirection);
 		colliders.forEach(collider => {
 			if(collider.kills(this))
 				this.moveDirection = this.playerNum === 1? 1 : -1; // turn around
@@ -56,15 +56,15 @@ export default class Spell extends GameObject {
 	}
 
 
-	handleCollisions() {
-		const colliders = this.getCollisionsWithType(Spell);
+	handleCollisions(): void {
+		const colliders: Spell[] = this.getCollisionsWithType(Spell);
 		colliders.forEach(collider => {
 			if(this.kills(collider))
 				collider.destroy();
 		});
 	}
 
-	step() {
+	step(): void {
 		this.power?.();
 
 		this.handleCollisions();
