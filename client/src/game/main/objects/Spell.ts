@@ -13,12 +13,12 @@ export default class Spell extends GameObject {
 	static readonly vy = 0.05; // pixels per millisecond
 	static readonly framesPerTick = Math.round(64 / Spell.vy / 1000 * Game.maxFrameRate);
 	
-	constructor(x: number, y: number, lane: Lane, tier: Tier, playerNum: PlayerNum, power: PowerName | null = null) {
+	constructor(x: number, y: number, lane: Lane, tier: Tier, playerNum: PlayerNum, power: Power = "none") {
 		super(x, y, 64, 64, `/src/game/main/sprites/spells/spell-player${playerNum}-tier${tier}.png`);
 		this.lane = lane;
 		this.tier = tier;
 		this.playerNum = playerNum;
-		if(power)
+		if(power !== "none")
 			this.power = this[power];
 	}
 

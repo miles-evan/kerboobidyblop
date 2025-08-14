@@ -1,3 +1,3 @@
 export default interface CastHandler {
-	castSpell(): [Lane, Tier] | null
+	castSpell(): [Tier, Power, Lane] | null
 }

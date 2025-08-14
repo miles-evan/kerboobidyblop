@@ -9,13 +9,13 @@ export default class RandomBot implements CastHandler {
 		this.chanceOfMoving = chanceOfMoving;
 	}
 	
-	castSpell(): [Lane, Tier] | null {
+	castSpell(): [Tier, Power, Lane] | null {
 		if(Math.random() > this.chanceOfMoving)
 			return null;
 		
 		const lane: Lane = Math.floor(Math.random() * 3) as Lane;
 		const tier: Tier = Math.floor(Math.random() * 4) + 1 as Tier;
 
-		return [lane, tier];
+		return [tier, "none", lane];
 	}
 }

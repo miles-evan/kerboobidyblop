@@ -29,12 +29,12 @@ export default class Board extends GameObject {
 	castSpell(playerNum: PlayerNum) {
 		const player: CastHandler = [this.player1, this.player2][playerNum - 1];
 		const rank: Rank = playerNum === 1? 0 : 9;
-		const cast: [Lane, Tier] | null = player.castSpell();
+		const cast: [Tier, Power, Lane] | null = player.castSpell();
 		
 		if(cast) {
-			const [lane, tier] = cast;
+			const [tier, power, lane] = cast;
 			const [x, y] = this.getPositionOfTile(lane, rank);
-			const newSpell = new Spell(x, y, lane, tier, playerNum);
+			const newSpell = new Spell(x, y, lane, tier, playerNum, power);
 			if(!this.validateCast(newSpell))
 				newSpell.destroy();
 		}
