@@ -113,7 +113,7 @@ export default class Game {
 		gameObject: GameObject, type: Constructor<GameObject>, x?: number, y?: number
 	): boolean {
 		
-		return gameObject.withTempPosition(x ?? gameObject.x, y ?? gameObject.y, () => {
+		return gameObject.withTempPosition(x, y, () => {
 			return Game._gameObjects.some(other =>
 				other instanceof type
 				&& gameObject !== other
@@ -125,7 +125,7 @@ export default class Game {
 		gameObject: GameObject, type: Constructor<T>, x?: number, y?: number
 	): T[] {
 		
-		return gameObject.withTempPosition(x ?? gameObject.x, y ?? gameObject.y, () => {
+		return gameObject.withTempPosition(x, y, () => {
 			const objectsCollidedWith: T[] = [];
 			Game._gameObjects.forEach(other => {
 				if(other instanceof type

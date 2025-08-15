@@ -45,8 +45,8 @@ export default class Spell extends GameObject {
 	collidedWithAlly(x?: number, y?: number): boolean {
 		return this.getCollisionsWithType(Spell, x, y).some(collider => this.playerNum === collider.playerNum);
 	}
-
-	retreater(): void {
+	
+	private retreater(): void {
 		// stop retreating if lined up with a tile and not colliding with an ally
 		if(Game.frameCount % Spell.framesPerTick === 0 && !this.collidedWithAlly())
 			this.moveDirectionY = this.playerNum === 1? -1 : 1;
@@ -59,31 +59,30 @@ export default class Spell extends GameObject {
 	}
 	
 	
-	dodger(): void {
-		// im gonna extract out the logic for changing lanes once i get to this
+	private dodger(): void {
+		if(this.collidedWithEnemy(this.x, this.y + 32 * this.moveDirectionY)) {
+			if(!this.collidedWithAlly(this.x - 16))
+			this.changeLanes(-1);
+		}
 	}
 	
-	private wasLinedUpLastFrame: boolean = true;
-	hopper(): void {
-		if(!this.moveDirectionY) return;
-		
-		// stop hopping if lined up with square
-		const isLinedUp: boolean = this.board.positionLinesUpWithTile(this.x, undefined, true);
-		if(!this.wasLinedUpLastFrame && isLinedUp) {
-			this.moveDirectionX = 0;
-			this.x = Math.round(this.x);
-		}
-		this.wasLinedUpLastFrame = isLinedUp;
-		
+	private hopper(): void {
 		// start hopping if there are any enemies diagonally, no allies next to you there, and you're not alr hopping
 		([1, -1] as const).forEach(dir => {
 			if(
 				this.collidedWithEnemy(this.x + 16*dir, this.y + 32 * this.moveDirectionY)
 				&& !this.collidedWithAlly(this.x + 16*dir, this.y)
 			) {
-				this.moveDirectionX = dir;
+				this.changeLanes(dir);
 			}
 		});
+	}
+	
+	
+	private changeLanes(dir: -1 | 0 | 1) {
+		if(!dir || !this.moveDirectionY || this.moveDirectionX) return;
+		this.lane += dir;
+		this.moveDirectionX = dir;
 	}
 
 
@@ -101,12 +100,23 @@ export default class Spell extends GameObject {
 
 		this.handleCollisions();
 		
-		if(Game.frameCount % Spell.framesPerTick === 0) // start moving when lined up with a tile
+		// start moving when lined up with a tile
+		if(Game.frameCount % Spell.framesPerTick === 0)
 			this.moveDirectionY = this.playerNum === 1? -1 : 1;
 		
+		// changing lanes
+		const targetX: number = this.board.getPositionOfTile(this.lane, 0)[0];
 		this.x += Spell.velocity * Game.deltaTime * this.moveDirectionX;
-		this.y += Spell.velocity * Game.deltaTime * this.moveDirectionY;
+		// if you're about to finish or finished changing lanes (algebraically simplified equation), then stop
+		if(
+			this.moveDirectionX !== Math.sign((targetX - this.x) * (1 - Spell.velocity * Game.deltaTime))
+			|| this.moveDirectionX !== Math.sign(targetX - this.x)
+		) {
+			this.x = targetX;
+			this.moveDirectionX = 0;
+		}
 		
+		this.y += Spell.velocity * Game.deltaTime * this.moveDirectionY;
 		
 		if(this.top > Game.screenHeight || this.bottom < 0)
 			this.destroy();
