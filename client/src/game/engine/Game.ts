@@ -97,23 +97,32 @@ export default class Game {
 	}
 	
 	
-	static objectCollidedWithType(gameObject: GameObject, type: Constructor<GameObject>): boolean {
-		return Game._gameObjects.some(other =>
-			other instanceof type
-			&& gameObject !== other
-			&& gameObject.collidedWith(other));
+	static objectCollidedWithType(
+		gameObject: GameObject, type: Constructor<GameObject>, x?: number, y?: number
+	): boolean {
+		
+		return gameObject.withTempPosition(x ?? gameObject.x, y ?? gameObject.y, () => {
+			return Game._gameObjects.some(other =>
+				other instanceof type
+				&& gameObject !== other
+				&& gameObject.collidedWith(other));
+		})
 	}
 	
-	
-	static getObjectsCollisionsWithType<T extends GameObject>(gameObject: GameObject, type: Constructor<T>): T[] {
-		const objectsCollidedWith: T[] = [];
-		Game._gameObjects.forEach(other => {
-			if(other instanceof type
-				&& gameObject !== other
-				&& gameObject.collidedWith(other))
-				objectsCollidedWith.push(other);
+	static getObjectsCollisionsWithType<T extends GameObject>(
+		gameObject: GameObject, type: Constructor<T>, x?: number, y?: number
+	): T[] {
+		
+		return gameObject.withTempPosition(x ?? gameObject.x, y ?? gameObject.y, () => {
+			const objectsCollidedWith: T[] = [];
+			Game._gameObjects.forEach(other => {
+				if(other instanceof type
+					&& gameObject !== other
+					&& gameObject.collidedWith(other))
+					objectsCollidedWith.push(other);
+			});
+			return objectsCollidedWith;
 		});
-		return objectsCollidedWith;
 	}
 	
 	
