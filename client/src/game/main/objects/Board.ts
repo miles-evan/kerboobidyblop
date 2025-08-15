@@ -33,12 +33,8 @@ export default class Board extends GameObject {
 			&& (y === undefined || (y - this.topLeftTileY) % 16 === 0);
 	}
 	
-	validateCast(newSpell: Spell) {
-		return !newSpell.getCollisionsWithType(Spell).some(spell => spell.playerNum === newSpell.playerNum);
-	}
-	
 	initiatePlayerCast(playerNum: PlayerNum) {
-		const player: Player = [this.player1, this.player2][playerNum - 1];
+		const player: Player = playerNum === 1? this.player1 : this.player2;
 		const rank: Rank = playerNum === 1? 0 : 9;
 		const cast: [Tier, Power, Lane] | null = player.castSpell();
 		
@@ -49,6 +45,10 @@ export default class Board extends GameObject {
 			if(!this.validateCast(newSpell))
 				newSpell.destroy();
 		}
+	}
+	
+	validateCast(newSpell: Spell) {
+		return !newSpell.getCollisionsWithType(Spell).some(spell => spell.playerNum === newSpell.playerNum);
 	}
 	
 	step() {

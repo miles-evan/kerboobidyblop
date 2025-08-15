@@ -70,7 +70,5 @@ export default class KeyboardInputPlayer extends Player {
 		
 		return null;
 	}
-	
-	
 
 }
