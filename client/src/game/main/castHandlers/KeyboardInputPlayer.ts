@@ -1,6 +1,7 @@
 import type CastHandler from "./CastHandler.ts";
 import Game from "../../engine/Game.ts";
 import GameObject from "../../engine/GameObject.ts";
+import Spell from "../objects/Spell.ts";
 export default class KeyboardInputPlayer implements CastHandler {
 
 	private nextTier: Tier | null = null;
@@ -9,10 +10,13 @@ export default class KeyboardInputPlayer implements CastHandler {
 	// time after setting tier and power that it resets
 	private timeToExpire: number = 0;
 	private readonly expireDuration: number = 1000;
+
+	flux: number; // Should be between 0 and 10, but I don't think theres a way to enforce that
 	
 	
 	constructor() {
 		const thisRef = this;
+		this.flux = 0.0;
 		new class extends GameObject {
 			constructor() {
 				super(5, 10);
@@ -23,8 +27,7 @@ export default class KeyboardInputPlayer implements CastHandler {
 		}
 	}
 	
-	
-	castSpell(): [Tier, Power, Lane] | null {
+	possibleCast() {
 		let tier: Tier | null = null;
 		let power: Power | null = null;
 		let lane: Lane | null = null;
@@ -67,6 +70,22 @@ export default class KeyboardInputPlayer implements CastHandler {
 		}
 		
 		return null;
+	}
+	
+	castSpell(): [Tier, Power, Lane] | null {
+		const cast = this.possibleCast();
+		if(!cast)
+			return null;
+
+		const [tier, power, _] = cast;
+
+		const fluxCost = Spell.fluxCost(tier, power);
+
+		if (fluxCost > this.flux) 
+			return null;
+
+		this.flux -= fluxCost;
+		return cast;
 	}
 
 }

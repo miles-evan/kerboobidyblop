@@ -4,9 +4,11 @@ import type CastHandler from "./CastHandler.ts";
 export default class RandomBot implements CastHandler {
 	
 	chanceOfMoving: number;
+	flux: number;
 	
 	constructor(chanceOfMoving: number = 0.002) {
 		this.chanceOfMoving = chanceOfMoving;
+		this.flux = 0.0
 	}
 	
 	castSpell(): [Tier, Power, Lane] | null {

@@ -25,6 +25,24 @@ export default class Spell extends GameObject {
 		this.board = board;
 	}
 
+
+	static fluxCost(tier: Tier, power: Power): number {
+		const tierCost: Record<Tier, number> = {
+			1: 1,
+			2: 2,
+			3: 3,
+			4: 4,
+		}
+		const powerCost: Record<Power, number> = {
+			"none": 1,
+			"retreater": 2,
+			"dodger": 2,
+			"hopper": 2,
+		}
+
+		return tierCost[tier] * powerCost[power];
+	}
+
 	static readonly tierEliminationMap = { // map of which spells beat who
 		1: [4],
 		2: [1],
