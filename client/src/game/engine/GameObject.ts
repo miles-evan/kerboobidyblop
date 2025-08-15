@@ -189,10 +189,10 @@ export default abstract class GameObject {
 	}
 	
 	
-	withTempPosition<T>(x: number, y: number, fn: (...args: any[]) => T): T {
+	withTempPosition<T>(x: number | undefined, y: number | undefined, fn: (...args: any[]) => T): T {
 		const [originalX, originalY] = [this.x, this.y];
-		if(x !== undefined && y !== undefined)
-			[this.x, this.y] = [x, y];
+		this.x = x ?? this.x;
+		this.y = y ?? this.y;
 		
 		const result: any = fn();
 		

@@ -7,6 +7,8 @@ import type CastHandler from "../castHandlers/CastHandler.ts";
 export default class Board extends GameObject {
 	readonly player1: CastHandler;
 	readonly player2: CastHandler;
+	topLeftTileX: number;
+	topLeftTileY: number;
 
 	constructor(player1: CastHandler, player2: CastHandler) {
 		super(0, 0, 64, 180, boardSprite);
@@ -15,11 +17,20 @@ export default class Board extends GameObject {
 		this.player1 = player1;
 		this.player2 = player2;
 		this.depth = 2;
+		[this.topLeftTileX, this.topLeftTileY] = [this.x + 8, this.y + 10];
 	}
 	
 	getPositionOfTile(lane: Lane, rank: Rank): [number, number] {
 		// lane 0 is left most col, rank 0 is bottom most row
-		return [8 + 16*lane + this.x, 10 + 16*(9-rank) + this.y];
+		return [this.topLeftTileX + 16*lane, this.topLeftTileY + 16*(9-rank)];
+	}
+	
+	positionLinesUpWithTile(x: number | undefined, y: number | undefined, round: boolean = false): boolean {
+		// if you pass undefined, then it counts as being lined up
+		if(round && x) x = Math.round(x);
+		if(round && y) y = Math.round(y);
+		return (x === undefined || (x - this.topLeftTileX) % 16 === 0)
+			&& (y === undefined || (y - this.topLeftTileY) % 16 === 0);
 	}
 	
 	validateCast(newSpell: Spell) {
@@ -34,7 +45,7 @@ export default class Board extends GameObject {
 		if(cast) {
 			const [tier, power, lane] = cast;
 			const [x, y] = this.getPositionOfTile(lane, rank);
-			const newSpell = new Spell(x, y, lane, tier, playerNum, power);
+			const newSpell = new Spell(x, y, lane, tier, playerNum, power, this);
 			if(!this.validateCast(newSpell))
 				newSpell.destroy();
 		}
