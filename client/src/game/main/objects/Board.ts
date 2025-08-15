@@ -2,15 +2,15 @@ import GameObject from "../../engine/GameObject.ts";
 import Game from "../../engine/Game.ts";
 import Spell from "./Spell.ts";
 import boardSprite from "../sprites/board.png";
-import type CastHandler from "../castHandlers/CastHandler.ts";
+import type Player from "../castHandlers/Player.ts";
 
 export default class Board extends GameObject {
-	readonly player1: CastHandler;
-	readonly player2: CastHandler;
+	readonly player1: Player;
+	readonly player2: Player;
 	topLeftTileX: number;
 	topLeftTileY: number;
 
-	constructor(player1: CastHandler, player2: CastHandler) {
+	constructor(player1: Player, player2: Player) {
 		super(0, 0, 64, 180, boardSprite);
 		this.middleX = Game.screenWidth / 2;
 		this.middleY = Game.screenHeight / 2;
@@ -38,7 +38,7 @@ export default class Board extends GameObject {
 	}
 	
 	initiatePlayerCast(playerNum: PlayerNum) {
-		const player: CastHandler = [this.player1, this.player2][playerNum - 1];
+		const player: Player = [this.player1, this.player2][playerNum - 1];
 		const rank: Rank = playerNum === 1? 0 : 9;
 		const cast: [Tier, Power, Lane] | null = player.castSpell();
 		
