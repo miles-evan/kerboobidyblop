@@ -1,17 +1,20 @@
-import type CastHandler from "./CastHandler.ts";
+import Player from "./Player.ts";
 import Game from "../../engine/Game.ts";
 import GameObject from "../../engine/GameObject.ts";
-export default class KeyboardInputPlayer implements CastHandler {
+
+
+export default class KeyboardInputPlayer extends Player {
 
 	private nextTier: Tier | null = null;
 	private nextPower: Power | null = null;
-	
-	// time after setting tier and power that it resets
-	private timeToExpire: number = 0;
+	private timeToExpire: number = 0; // time after setting tier and power that it resets
 	private readonly expireDuration: number = 1000;
-	
+
 	
 	constructor() {
+		super();
+		
+		// for debugging:
 		const thisRef = this;
 		new class extends GameObject {
 			constructor() {
@@ -23,8 +26,7 @@ export default class KeyboardInputPlayer implements CastHandler {
 		}
 	}
 	
-	
-	castSpell(): [Tier, Power, Lane] | null {
+	tryCast(): [Tier, Power, Lane] | null {
 		let tier: Tier | null = null;
 		let power: Power | null = null;
 		let lane: Lane | null = null;

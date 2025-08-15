@@ -1,15 +1,16 @@
-import type CastHandler from "./CastHandler.ts";
+import Player from "./Player.ts";
 
 
-export default class RandomBot implements CastHandler {
+export default class RandomBot extends Player {
 	
 	chanceOfMoving: number;
 	
 	constructor(chanceOfMoving: number = 0.002) {
+		super();
 		this.chanceOfMoving = chanceOfMoving;
 	}
 	
-	castSpell(): [Tier, Power, Lane] | null {
+	tryCast(): [Tier, Power, Lane] | null {
 		if(Math.random() > this.chanceOfMoving)
 			return null;
 		
