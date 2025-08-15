@@ -48,18 +48,21 @@ export default abstract class GameObject {
 		
 		this.setHitbox(hitboxWidth, hitboxHeight);
 		
-		if(!Game.screen)
-			throw new Error("Maybe try making the screen first, jackass");
-		Game.screen.append(this._object);
+		if(!Game._screen)
+			throw new Error("Must initialize screen");
+		Game._screen.append(this._object);
 		
 		Game._addGameObjects(this);
 	}
 	
 	
 	updatePosition(): void {
-		this._object.style.left = this.left + "px";
-		this._object.style.top = this.top + "px";
+		const roundOrNot : (x: number) => number = Game.lockPositionsToVirtualPixels? Math.round : x => x;
+		this._object.style.left = roundOrNot(this.left) * Game.virtualScreenSizeMultiplier + "px";
+		this._object.style.top = roundOrNot(this.top) * Game.virtualScreenSizeMultiplier + "px";
 		this._object.style.transform = "rotate(" + this.rotation + "deg)";
+		this._object.style.width = roundOrNot(this.#width) * Game.virtualScreenSizeMultiplier + "px";
+		this._object.style.height = roundOrNot(this.#height) * Game.virtualScreenSizeMultiplier + "px";
 	}
 	
 	
@@ -112,7 +115,6 @@ export default abstract class GameObject {
 		this._hitboxLeft = this._hitboxLeft * width / this.width;
 		this._hitboxRight = this._hitboxRight * width / this.width;
 		this.#width = width;
-		this._object.style.width = width + "px";
 	}
 	
 	get height(): number {
@@ -122,7 +124,6 @@ export default abstract class GameObject {
 		this._hitboxTop = this._hitboxTop * height / this.height;
 		this._hitboxBottom = this._hitboxBottom * height / this.height;
 		this.#height = height;
-		this._object.style.height = height + "px";
 	}
 	
 	

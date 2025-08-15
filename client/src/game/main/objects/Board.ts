@@ -9,7 +9,7 @@ export default class Board extends GameObject {
 	readonly player2: CastHandler;
 
 	constructor(player1: CastHandler, player2: CastHandler) {
-		super(0, 0, 256, 720, boardSprite);
+		super(0, 0, 64, 180, boardSprite);
 		this.middleX = Game.screenWidth / 2;
 		this.middleY = Game.screenHeight / 2;
 		this.player1 = player1;
@@ -19,7 +19,7 @@ export default class Board extends GameObject {
 	
 	getPositionOfTile(lane: Lane, rank: Rank): [number, number] {
 		// lane 0 is left most col, rank 0 is bottom most row
-		return [4 * (8 + 16*lane) + this.x, 4 * (10 + 16*(9-rank)) + this.y];
+		return [8 + 16*lane + this.x, 10 + 16*(9-rank) + this.y];
 	}
 	
 	validateCast(newSpell: Spell) {
