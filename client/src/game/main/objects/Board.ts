@@ -33,7 +33,7 @@ export default class Board extends GameObject {
 			&& (y === undefined || (y - this.topLeftTileY) % 16 === 0);
 	}
 	
-	initiatePlayerCast(playerNum: PlayerNum) {
+	initiatePlayerCast(playerNum: PlayerNum): void {
 		const player: Player = playerNum === 1? this.player1 : this.player2;
 		const rank: Rank = playerNum === 1? 0 : 9;
 		const cast: [Tier, Power, Lane] | null = player.castSpell();
