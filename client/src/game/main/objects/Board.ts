@@ -37,7 +37,7 @@ export default class Board extends GameObject {
 		return !newSpell.getCollisionsWithType(Spell).some(spell => spell.playerNum === newSpell.playerNum);
 	}
 	
-	castSpell(playerNum: PlayerNum) {
+	initiatePlayerCast(playerNum: PlayerNum) {
 		const player: CastHandler = [this.player1, this.player2][playerNum - 1];
 		const rank: Rank = playerNum === 1? 0 : 9;
 		const cast: [Tier, Power, Lane] | null = player.castSpell();
@@ -52,8 +52,15 @@ export default class Board extends GameObject {
 	}
 	
 	step() {
-		this.castSpell(1);
-		this.castSpell(2);
+		// I think we need to refactor casthandler to be more of a player class
+		console.log(this.player1.flux)
+		const fluxPerSecond = 1;
+		this.player1.flux = Math.min(10, this.player1.flux + fluxPerSecond * (Game.deltaTime / 1000));
+		this.player2.flux = Math.min(10, this.player2.flux + fluxPerSecond * (Game.deltaTime / 1000));
+
+
+		this.initiatePlayerCast(1);
+		this.initiatePlayerCast(2);
 	}
 	
 }
