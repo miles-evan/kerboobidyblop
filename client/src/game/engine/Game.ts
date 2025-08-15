@@ -8,6 +8,8 @@ export default class Game {
 	static _screen: HTMLElement | null;
 	static screenWidth: number;
 	static screenHeight: number;
+	static mouseX: number;
+	static mouseY: number;
 	static lockPositionsToVirtualPixels: boolean = false;
 	private static keysDown: Record<Key, number> = {};
 	private static lastFrameTimeStamp: number = 0;
@@ -17,6 +19,8 @@ export default class Game {
 	private static onKeyUp: (e: KeyboardEvent) => void;
 	private static onTouchStart: (e: TouchEvent) => void;
 	private static onTouchEnd: (e: TouchEvent) => void;
+	private static onMouseMove: (e: MouseEvent) => void;
+	
 	static #frameCount: number = 0;
 	static globalStep = () => {};
 	
@@ -31,24 +35,30 @@ export default class Game {
 		screen.style.overflow = "hidden";
 		screen.style.position = "relative";
 		
-		Game.onKeyDown = (e: KeyboardEvent) => {
+		Game.onKeyDown = (e: KeyboardEvent): void => {
 			if(!(e.key in Game.keysDown))
 				Game.keysDown[e.key as Key] = Date.now();
 		};
-		Game.onKeyUp = (e: KeyboardEvent) => {
+		Game.onKeyUp = (e: KeyboardEvent): void => {
 			delete Game.keysDown[e.key as Key];
 		};
-		Game.onTouchStart = () => {
+		Game.onTouchStart = (): void => {
 			if(!("touch" in Game.keysDown))
 				Game.keysDown["touch"] = Date.now();
 		};
-		Game.onTouchEnd = () => {
+		Game.onTouchEnd = (): void => {
 			delete Game.keysDown["touch"];
 		};
+		Game.onMouseMove = (e: MouseEvent): void => {
+			const rect: DOMRect = screen.getBoundingClientRect();
+			Game.mouseX = (e.clientX - rect.left) / Game.virtualScreenSizeMultiplier;
+			Game.mouseY = (e.clientY - rect.top) / Game.virtualScreenSizeMultiplier;
+		}
 		window.addEventListener("keydown", Game.onKeyDown);
 		window.addEventListener("keyup", Game.onKeyUp);
 		screen.addEventListener("touchstart", Game.onTouchStart);
 		screen.addEventListener("touchend", Game.onTouchEnd);
+		screen.addEventListener('mousemove', Game.onMouseMove);
 		
 		return true;
 	}
@@ -60,6 +70,7 @@ export default class Game {
 		window.removeEventListener("keyup", Game.onKeyUp);
 		Game._screen.removeEventListener("touchstart", Game.onTouchStart);
 		Game._screen.removeEventListener("touchend", Game.onTouchEnd);
+		Game._screen.removeEventListener("mousemove", Game.onMouseMove);
 		Game._screen = null;
 		Game._gameObjects.forEach(gameObject => gameObject.destroy());
 		Game._gameObjects = [];
