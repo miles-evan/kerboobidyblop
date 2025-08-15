@@ -8,6 +8,7 @@ export default class Game {
 	static _screen: HTMLElement | null;
 	static screenWidth: number;
 	static screenHeight: number;
+	static lockPositionsToVirtualPixels: boolean = false;
 	private static keysDown: Record<Key, number> = {};
 	private static lastFrameTimeStamp: number = 0;
 	private static currentFrameTimeStamp: number = 0;

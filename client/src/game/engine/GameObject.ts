@@ -57,11 +57,12 @@ export default abstract class GameObject {
 	
 	
 	updatePosition(): void {
-		this._object.style.left = this.left * Game.virtualScreenSizeMultiplier + "px";
-		this._object.style.top = this.top * Game.virtualScreenSizeMultiplier + "px";
+		const roundOrNot : (x: number) => number = Game.lockPositionsToVirtualPixels? Math.round : x => x;
+		this._object.style.left = roundOrNot(this.left) * Game.virtualScreenSizeMultiplier + "px";
+		this._object.style.top = roundOrNot(this.top) * Game.virtualScreenSizeMultiplier + "px";
 		this._object.style.transform = "rotate(" + this.rotation + "deg)";
-		this._object.style.width = this.#width * Game.virtualScreenSizeMultiplier + "px";
-		this._object.style.height = this.#height * Game.virtualScreenSizeMultiplier + "px";
+		this._object.style.width = roundOrNot(this.#width) * Game.virtualScreenSizeMultiplier + "px";
+		this._object.style.height = roundOrNot(this.#height) * Game.virtualScreenSizeMultiplier + "px";
 	}
 	
 	
