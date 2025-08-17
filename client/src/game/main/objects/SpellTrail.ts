@@ -20,10 +20,8 @@ export default class SpellTrail extends GameObject {
 	
 	step() {
 		this.opacity -= this.decayRate;
-		if(this.opacity <= 0) {
-			console.log("destroying at opacity ", this.opacity)
+		if(this.opacity <= 0)
 			this.destroy();
-		}
 	}
 	
 }

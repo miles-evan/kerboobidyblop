@@ -26,6 +26,7 @@ export default class KeyboardInputPlayer extends Player {
 		}
 	}
 	
+	
 	tryCast(): [Tier, Power, Lane] | null {
 		let tier: Tier | null = null;
 		let power: Power | null = null;
@@ -50,22 +51,24 @@ export default class KeyboardInputPlayer extends Player {
 			lane = 1;
 			power = "none";
 		} else if(Game.isKeyPressed("Control") || Date.now() > this.timeToExpire) {
+			// input expired
 			this.nextTier = this.nextPower = null;
 			this.timeToExpire = Date.now() + this.expireDuration;
+			return null;
 		} else {
 			return null;
 		}
 		
-		if(this.nextTier !== null && this.nextPower !== null && lane !== null) {
-			const cast: [Tier, Power, Lane] = [this.nextTier, this.nextPower, lane];
-			this.nextTier = this.nextPower = null;
-			return cast;
-		} else if(this.nextTier !== null) {
+		if(this.nextTier === null) {
+			this.nextTier = tier;
+			this.timeToExpire = Date.now() + this.expireDuration; // reset expire time
+		} else if(this.nextPower === null) {
 			this.nextPower = power;
 			this.timeToExpire = Date.now() + this.expireDuration; // reset expire time
 		} else {
-			this.nextTier = tier;
-			this.timeToExpire = Date.now() + this.expireDuration; // reset expire time
+			const cast: [Tier, Power, Lane] = [this.nextTier, this.nextPower, lane];
+			this.nextTier = this.nextPower = null;
+			return cast;
 		}
 		
 		return null;
