@@ -15,6 +15,7 @@ export default class Spell extends GameObject {
 	board: Board;
 	static readonly velocity: number = 0.006; // pixels per millisecond
 	static readonly framesPerTick: number = Math.round(16 / Spell.velocity / 1000 * Game.maxFrameRate);
+	private trailRepeatableId: RepeatableId;
 	
 	constructor(x: number, y: number, lane: Lane, tier: Tier, playerNum: PlayerNum, power: Power = "none", board: Board) {
 		super(x, y, 16, 16, `/src/game/main/sprites/spells/spell-player${playerNum}-tier${tier}.png`);
@@ -24,7 +25,7 @@ export default class Spell extends GameObject {
 		this.power = power;
 		this.board = board;
 		
-		Game.addRepeatable(
+		this.trailRepeatableId = Game.addRepeatable(
 			() => new SpellTrail(Math.round(this.x), Math.round(this.y), this.power),
 			1000 * Spell.velocity
 		);
@@ -146,6 +147,11 @@ export default class Spell extends GameObject {
 		
 		// if((this.moveDirectionY || this.moveDirectionX) && Game.frameCount % Math.round(Spell.framesPerTick / 16))
 		// 	new SpellTrail(this);
+	}
+	
+	destroy() {
+		super.destroy();
+		Game.removeRepeatable(this.trailRepeatableId);
 	}
 	
 }

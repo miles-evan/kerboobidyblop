@@ -20,6 +20,7 @@ export default abstract class GameObject {
 	#imageSpeed: Hertz = 1; // frames per second
 	private animationRepeatableId: RepeatableId | null = null;
 	imageIndex: number = 0;
+	opacity: number = 1;
 	
 	
 	protected constructor(
@@ -62,6 +63,7 @@ export default abstract class GameObject {
 		this._object.style.width = roundOrNot(this.#width) * Game.virtualScreenSizeMultiplier + "px";
 		this._object.style.height = roundOrNot(this.#height) * Game.virtualScreenSizeMultiplier + "px";
 		this._object.style.backgroundImage = "url(" + this.sprite + ")";
+		this._object.style.opacity = String(this.opacity);
 	}
 	
 	
@@ -172,14 +174,6 @@ export default abstract class GameObject {
 	}
 	
 	
-	get opacity(): number {
-		return Number(this._object.style.opacity);
-	}
-	set opacity(opacity: number) {
-		this._object.style.opacity = String(opacity);
-	}
-	
-	
 	// higher depth = further into the screen (further behind)
 	get depth(): number {
 		return -Number(this._object.style.zIndex);
@@ -219,6 +213,7 @@ export default abstract class GameObject {
 	
 	
 	destroy(): void {
+		this._object.remove();
 		Game._removeGameObject(this);
 		Game.removeRepeatable(this.animationRepeatableId);
 	}

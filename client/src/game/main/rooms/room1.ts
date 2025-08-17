@@ -10,7 +10,7 @@ export default function room1() {
 	Game.globalSteps.push(() => {
 		if(Game.isKeyPressed(" ")) Game.stop();
 	});
-	new Board(new KeyboardInputPlayer(), new RandomBot());
+	new Board(new KeyboardInputPlayer(), new RandomBot(0));
 	new AnimationTest(0, 0, 2);
 	new AnimationTest(16, 0, 2.1);
 }
