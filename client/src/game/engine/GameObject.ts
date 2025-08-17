@@ -1,14 +1,6 @@
 import Game from "./Game.ts";
 
 
-type ObjectOptions = {
-	hitboxWidth?: number,
-	hitboxHeight?: number,
-	originX?: number,
-	originY?: number
-}
-
-
 export default abstract class GameObject {
 	
 	_object: HTMLDivElement;
@@ -23,6 +15,11 @@ export default abstract class GameObject {
 	_hitboxBottom: number = 0;
 	originX: number;
 	originY: number;
+	sprite: string | null = null;
+	#spriteImages: string[] | null = null; // only use if doing animation
+	#imageSpeed: Hertz = 1; // frames per second
+	private animationRepeatableId: RepeatableId | null = null;
+	imageIndex: number = 0;
 	
 	
 	protected constructor(
@@ -39,7 +36,7 @@ export default abstract class GameObject {
 		
 		this.x = x;
 		this.y = y;
-		this.updatePosition();
+		this.update();
 		
 		this.width = width;
 		this.height = height;
@@ -56,13 +53,15 @@ export default abstract class GameObject {
 	}
 	
 	
-	updatePosition(): void {
+	// updates things like position and sprite
+	update(): void {
 		const roundOrNot : (x: number) => number = Game.lockPositionsToVirtualPixels? Math.round : x => x;
 		this._object.style.left = roundOrNot(this.left) * Game.virtualScreenSizeMultiplier + "px";
 		this._object.style.top = roundOrNot(this.top) * Game.virtualScreenSizeMultiplier + "px";
 		this._object.style.transform = "rotate(" + this.rotation + "deg)";
 		this._object.style.width = roundOrNot(this.#width) * Game.virtualScreenSizeMultiplier + "px";
 		this._object.style.height = roundOrNot(this.#height) * Game.virtualScreenSizeMultiplier + "px";
+		this._object.style.backgroundImage = "url(" + this.sprite + ")";
 	}
 	
 	
@@ -151,8 +150,25 @@ export default abstract class GameObject {
 	}
 	
 	
-	set sprite(sprite: string) {
-		this._object.style.backgroundImage = "url(" + sprite + ")";
+	set animatedSprite(spriteImages: string[]) {
+		this.#spriteImages = spriteImages;
+		this.sprite = spriteImages[0];
+		Game.removeRepeatable(this.animationRepeatableId);
+		this.animationRepeatableId = null;
+		this.animationRepeatableId = Game.addRepeatable(() => {
+			if(!this.#spriteImages) throw new Error("sprite images for animation not set")
+			this.imageIndex = (this.imageIndex + 1) % this.#spriteImages.length;
+			this.sprite = this.#spriteImages[this.imageIndex];
+		}, this.imageSpeed);
+	}
+	
+	get imageSpeed() {
+		return this.#imageSpeed;
+	}
+	set imageSpeed(imageSpeed: number) {
+		this.#imageSpeed = imageSpeed;
+		if(this.animationRepeatableId)
+			Game._repeatables[this.animationRepeatableId].timesPerSecond = imageSpeed;
 	}
 	
 	
@@ -191,8 +207,8 @@ export default abstract class GameObject {
 	
 	withTempPosition<T>(x: number | undefined, y: number | undefined, fn: (...args: any[]) => T): T {
 		const [originalX, originalY] = [this.x, this.y];
-		this.x = x ?? this.x;
-		this.y = y ?? this.y;
+		if(x) this.x = x;
+		if(y) this.y = y;
 		
 		const result: any = fn();
 		
@@ -202,8 +218,9 @@ export default abstract class GameObject {
 	}
 	
 	
-	destroy() {
+	destroy(): void {
 		Game._removeGameObject(this);
+		Game.removeRepeatable(this.animationRepeatableId);
 	}
 	
 	

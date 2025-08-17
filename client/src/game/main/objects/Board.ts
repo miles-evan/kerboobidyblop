@@ -52,13 +52,10 @@ export default class Board extends GameObject {
 	}
 	
 	step() {
-		// I think we need to refactor casthandler to be more of a player class
-		console.log(this.player1.flux)
 		const fluxPerSecond = 1;
 		this.player1.flux = Math.min(10, this.player1.flux + fluxPerSecond * (Game.deltaTime / 1000));
 		this.player2.flux = Math.min(10, this.player2.flux + fluxPerSecond * (Game.deltaTime / 1000));
-
-
+		
 		this.initiatePlayerCast(1);
 		this.initiatePlayerCast(2);
 	}

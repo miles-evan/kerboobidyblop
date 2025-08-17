@@ -3,7 +3,7 @@ import GameObject from "./GameObject.ts";
 
 export default class Game {
 	static _gameObjects: GameObject[] = [];
-	static maxFrameRate: number = 60;
+	static maxFrameRate: Hertz = 60; // frames per second
 	static isRunning: boolean = false;
 	static _screen: HTMLElement | null;
 	static screenWidth: number;
@@ -20,9 +20,9 @@ export default class Game {
 	private static onTouchStart: (e: TouchEvent) => void;
 	private static onTouchEnd: (e: TouchEvent) => void;
 	private static onMouseMove: (e: MouseEvent) => void;
-	
 	static #frameCount: number = 0;
-	static globalStep = () => {};
+	static globalStep: (() => void) | null = null;
+	static #timeStart: number = 0;
 	
 	
 	static init(screen: HTMLElement): boolean {
@@ -96,6 +96,7 @@ export default class Game {
 	static start(): boolean {
 		if(Game.isRunning) return false;
 		Game.isRunning = true;
+		Game.#timeStart = Date.now();
 		Game.doSteps();
 		return true;
 	}
@@ -157,6 +158,7 @@ export default class Game {
 	}
 	
 	
+	// milliseconds since last frame
 	static get deltaTime(): number {
 		return Game.lastFrameTimeStamp?
 			Game.currentFrameTimeStamp - Game.lastFrameTimeStamp
@@ -169,16 +171,51 @@ export default class Game {
 	}
 	
 	
+	// in milliseconds
+	static get timeSinceStart(): number {
+		return Date.now() - Game.#timeStart;
+	}
+	
+	
 	static get frameCount() {
 		return Game.#frameCount;
 	}
 	
 	
-	private static doSteps() {
+	// repeatables are functions that get called at a set rate like 5 times per second
+	// use this instead of setInterval because setInterval won't time it properly
+	static _repeatables: Record<RepeatableId, Repeatable> = {}
+	private static nextRepeatableId: RepeatableId = 0;
+	static addRepeatable(fn: AnyFunction, timesPerSecond: Hertz): RepeatableId {
+		Game._repeatables[Game.nextRepeatableId] = {
+			fn, timesPerSecond, timeOfLastFrameIdeally: Date.now(),
+		};
+		return Game.nextRepeatableId ++;
+	}
+	static removeRepeatable(id: RepeatableId | null): void {
+		if(id) delete Game._repeatables[id];
+	}
+	private static runRepeatables(): void {
+		Object.values(Game._repeatables).forEach(repeatable => {
+			const now: Time = Date.now();
+			const frameTime: number = 1000 / repeatable.timesPerSecond;
+			if(now - repeatable.timeOfLastFrameIdeally >= frameTime) {
+				repeatable.fn();
+				repeatable.timeOfLastFrameIdeally += frameTime;
+				// so you don't get too behind if low framerate:
+				if(now - repeatable.timeOfLastFrameIdeally > frameTime)
+					repeatable.timeOfLastFrameIdeally = now;
+			}
+		});
+	}
+	
+	
+	private static doSteps(): void {
 		Game.updateDeltaTime();
-		Game.globalStep();
+		Game.globalStep?.();
 		Game._gameObjects.forEach(gameObject => gameObject.step());
-		Game._gameObjects.forEach(gameObject => gameObject.updatePosition());
+		Game._gameObjects.forEach(gameObject => gameObject.update());
+		Game.runRepeatables();
 		if(Game.isRunning) {
 			const timeSinceFrameStart = Date.now() - Game.currentFrameTimeStamp;
 			Game.timeoutId = setTimeout(Game.doSteps, Math.max(0, 1000 / Game.maxFrameRate - timeSinceFrameStart));
