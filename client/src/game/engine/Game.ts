@@ -21,7 +21,7 @@ export default class Game {
 	private static onTouchEnd: (e: TouchEvent) => void;
 	private static onMouseMove: (e: MouseEvent) => void;
 	static #frameCount: number = 0;
-	static globalSteps: Array<() => void> = [];
+	static globalSteps: AnyFunction[] = [];
 	static #timeStart: number = 0;
 	
 	
@@ -198,12 +198,12 @@ export default class Game {
 	private static runRepeatables(): void {
 		Object.values(Game._repeatables).forEach(repeatable => {
 			const now: Time = Date.now();
-			const frameTime: number = 1000 / repeatable.timesPerSecond;
-			if(now - repeatable.timeOfLastFrameIdeally >= frameTime) {
+			const period: number = 1000 / repeatable.timesPerSecond; // seconds per run
+			if(now - repeatable.timeOfLastFrameIdeally >= period) {
 				repeatable.fn();
-				repeatable.timeOfLastFrameIdeally += frameTime;
+				repeatable.timeOfLastFrameIdeally += period;
 				// so you don't get too behind if low framerate:
-				if(now - repeatable.timeOfLastFrameIdeally > frameTime)
+				if(now - repeatable.timeOfLastFrameIdeally > period)
 					repeatable.timeOfLastFrameIdeally = now;
 			}
 		});

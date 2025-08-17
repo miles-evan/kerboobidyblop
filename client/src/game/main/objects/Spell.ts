@@ -23,6 +23,11 @@ export default class Spell extends GameObject {
 		this.playerNum = playerNum;
 		this.power = power;
 		this.board = board;
+		
+		Game.addRepeatable(
+			() => new SpellTrail(Math.round(this.x), Math.round(this.y), this.power),
+			1000 * Spell.velocity
+		);
 	}
 
 
@@ -139,8 +144,8 @@ export default class Spell extends GameObject {
 		if(this.top > Game.screenHeight || this.bottom < 0)
 			this.destroy();
 		
-		if((this.moveDirectionY || this.moveDirectionX) && Game.frameCount % Math.round(Spell.framesPerTick / 16))
-			new SpellTrail(this);
+		// if((this.moveDirectionY || this.moveDirectionX) && Game.frameCount % Math.round(Spell.framesPerTick / 16))
+		// 	new SpellTrail(this);
 	}
 	
 }

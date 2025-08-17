@@ -1,20 +1,19 @@
 import GameObject from "../../engine/GameObject.ts";
-import type Spell from "./Spell.ts";
 
 
 export default class SpellTrail extends GameObject {
 	
 	decayRate: number;
 	
-	constructor(spell: Spell) {
-		super(spell.x, spell.y, spell.width, spell.height, `/src/game/main/sprites/spell-trails/spell-trail-${spell.power}.png`);
+	constructor(x: number, y: number, power: Power) {
+		super(x, y, 16, 16, `/src/game/main/sprites/spell-trails/spell-trail-${power}.png`);
 		
 		[this.opacity, this.decayRate] = {
-			"none": [0.1, 0.0025],
-			"retreater": [0.1, 0.0025],
-			"dodger": [0.05, 0.00125],
-			"hopper": [0.025, 0.000625]
-		}[spell.power];
+			"none": [0.5, 0.005],
+			"retreater": [0.5, 0.005],
+			"dodger": [0.25, 0.0025],
+			"hopper": [0.125, 0.00125]
+		}[power];
 		
 		this.depth = 1;
 	}

@@ -1,4 +1,5 @@
 import Player from "./Player.ts";
+import Game from "../../engine/Game.ts";
 
 
 export default class RandomBot extends Player {
@@ -11,7 +12,7 @@ export default class RandomBot extends Player {
 	}
 	
 	tryCast(): [Tier, Power, Lane] | null {
-		if(Math.random() > this.chanceOfMoving)
+		if(!Game.isKeyPressed("0") && Math.random() > this.chanceOfMoving)
 			return null;
 		
 		const lane: Lane = Math.floor(Math.random() * 3) as Lane;
