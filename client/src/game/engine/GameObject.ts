@@ -56,12 +56,12 @@ export default abstract class GameObject {
 	
 	// updates things like position and sprite
 	update(): void {
-		const roundOrNot : (x: number) => number = Game.lockPositionsToVirtualPixels? Math.round : x => x;
+		const roundOrNot: (x: number) => number = Game.lockPositionsToVirtualPixels? Math.round : x => x;
 		this._object.style.left = roundOrNot(this.left) * Game.virtualScreenSizeMultiplier + "px";
 		this._object.style.top = roundOrNot(this.top) * Game.virtualScreenSizeMultiplier + "px";
-		this._object.style.transform = "rotate(" + this.rotation + "deg)";
 		this._object.style.width = roundOrNot(this.#width) * Game.virtualScreenSizeMultiplier + "px";
 		this._object.style.height = roundOrNot(this.#height) * Game.virtualScreenSizeMultiplier + "px";
+		this._object.style.transform = "rotate(" + this.rotation + "deg)";
 		this._object.style.backgroundImage = "url(" + this.sprite + ")";
 		this._object.style.opacity = String(this.opacity);
 	}
