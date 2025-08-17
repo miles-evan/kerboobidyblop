@@ -21,7 +21,7 @@ export default class Game {
 	private static onTouchEnd: (e: TouchEvent) => void;
 	private static onMouseMove: (e: MouseEvent) => void;
 	static #frameCount: number = 0;
-	static globalStep: (() => void) | null = null;
+	static globalSteps: Array<() => void> = [];
 	static #timeStart: number = 0;
 	
 	
@@ -212,7 +212,7 @@ export default class Game {
 	
 	private static doSteps(): void {
 		Game.updateDeltaTime();
-		Game.globalStep?.();
+		Game.globalSteps.forEach(step => step());
 		Game._gameObjects.forEach(gameObject => gameObject.step());
 		Game._gameObjects.forEach(gameObject => gameObject.update());
 		Game.runRepeatables();

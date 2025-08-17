@@ -7,7 +7,7 @@ import AnimationTest from "../objects/AnimationTest.ts";
 export default function room1() {
 	Game.screenWidth = 96;
 	Game.screenHeight = 180;
-	Game.globalStep = () => {
+	Game.globalSteps = () => {
 	
 	}
 	new Board(new KeyboardInputPlayer(), new RandomBot());
