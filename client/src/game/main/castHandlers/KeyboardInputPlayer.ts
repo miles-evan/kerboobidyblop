@@ -1,17 +1,20 @@
-import type CastHandler from "./CastHandler.ts";
+import Player from "./Player.ts";
 import Game from "../../engine/Game.ts";
 import GameObject from "../../engine/GameObject.ts";
-export default class KeyboardInputPlayer implements CastHandler {
+
+
+export default class KeyboardInputPlayer extends Player {
 
 	private nextTier: Tier | null = null;
 	private nextPower: Power | null = null;
-	
-	// time after setting tier and power that it resets
-	private timeToExpire: number = 0;
+	private timeToExpire: number = 0; // time after setting tier and power that it resets
 	private readonly expireDuration: number = 1000;
-	
+
 	
 	constructor() {
+		super();
+		
+		// for debugging:
 		const thisRef = this;
 		new class extends GameObject {
 			constructor() {
@@ -24,7 +27,7 @@ export default class KeyboardInputPlayer implements CastHandler {
 	}
 	
 	
-	castSpell(): [Tier, Power, Lane] | null {
+	tryCast(): [Tier, Power, Lane] | null {
 		let tier: Tier | null = null;
 		let power: Power | null = null;
 		let lane: Lane | null = null;
@@ -48,22 +51,24 @@ export default class KeyboardInputPlayer implements CastHandler {
 			lane = 1;
 			power = "none";
 		} else if(Game.isKeyPressed("Control") || Date.now() > this.timeToExpire) {
+			// input expired
 			this.nextTier = this.nextPower = null;
 			this.timeToExpire = Date.now() + this.expireDuration;
+			return null;
 		} else {
 			return null;
 		}
 		
-		if(this.nextTier !== null && this.nextPower !== null && lane !== null) {
-			const cast: [Tier, Power, Lane] = [this.nextTier, this.nextPower, lane];
-			this.nextTier = this.nextPower = null;
-			return cast;
-		} else if(this.nextTier !== null) {
+		if(this.nextTier === null) {
+			this.nextTier = tier;
+			this.timeToExpire = Date.now() + this.expireDuration; // reset expire time
+		} else if(this.nextPower === null) {
 			this.nextPower = power;
 			this.timeToExpire = Date.now() + this.expireDuration; // reset expire time
 		} else {
-			this.nextTier = tier;
-			this.timeToExpire = Date.now() + this.expireDuration; // reset expire time
+			const cast: [Tier, Power, Lane] = [this.nextTier, this.nextPower, lane];
+			this.nextTier = this.nextPower = null;
+			return cast;
 		}
 		
 		return null;

@@ -1,16 +1,18 @@
-import type CastHandler from "./CastHandler.ts";
+import Player from "./Player.ts";
+import Game from "../../engine/Game.ts";
 
 
-export default class RandomBot implements CastHandler {
+export default class RandomBot extends Player {
 	
 	chanceOfMoving: number;
 	
 	constructor(chanceOfMoving: number = 0.002) {
+		super();
 		this.chanceOfMoving = chanceOfMoving;
 	}
 	
-	castSpell(): [Tier, Power, Lane] | null {
-		if(Math.random() > this.chanceOfMoving)
+	tryCast(): [Tier, Power, Lane] | null {
+		if(!Game.isKeyPressed("0") && Math.random() > this.chanceOfMoving)
 			return null;
 		
 		const lane: Lane = Math.floor(Math.random() * 3) as Lane;

@@ -15,6 +15,7 @@ export default class Spell extends GameObject {
 	board: Board;
 	static readonly velocity: number = 0.006; // pixels per millisecond
 	static readonly framesPerTick: number = Math.round(16 / Spell.velocity / 1000 * Game.maxFrameRate);
+	private trailRepeatableId: RepeatableId;
 	
 	constructor(x: number, y: number, lane: Lane, tier: Tier, playerNum: PlayerNum, power: Power = "none", board: Board) {
 		super(x, y, 16, 16, `/src/game/main/sprites/spells/spell-player${playerNum}-tier${tier}.png`);
@@ -23,6 +24,29 @@ export default class Spell extends GameObject {
 		this.playerNum = playerNum;
 		this.power = power;
 		this.board = board;
+		
+		this.trailRepeatableId = Game.addRepeatable(
+			() => new SpellTrail(Math.round(this.x), Math.round(this.y), this.power),
+			1000 * Spell.velocity
+		);
+	}
+
+
+	static fluxCost(tier: Tier, power: Power): number {
+		const tierCost: Record<Tier, number> = {
+			1: 1,
+			2: 2,
+			3: 3,
+			4: 4,
+		}
+		const powerCost: Record<Power, number> = {
+			"none": 1,
+			"retreater": 2,
+			"dodger": 2,
+			"hopper": 2,
+		}
+
+		return tierCost[tier] * powerCost[power];
 	}
 
 	static readonly tierEliminationMap = { // map of which spells beat who
@@ -61,8 +85,10 @@ export default class Spell extends GameObject {
 	
 	private dodger(): void {
 		if(this.collidedWithEnemy(this.x, this.y + 32 * this.moveDirectionY)) {
-			if(!this.collidedWithAlly(this.x - 16))
-			this.changeLanes(-1);
+			if(!this.collidedWithAlly(this.x - 16) && this.lane !== 0)
+				this.changeLanes(-1);
+			else if(!this.collidedWithAlly(this.x + 16) && this.lane !== 2)
+				this.changeLanes(1);
 		}
 	}
 	
@@ -121,8 +147,13 @@ export default class Spell extends GameObject {
 		if(this.top > Game.screenHeight || this.bottom < 0)
 			this.destroy();
 		
-		if((this.moveDirectionY || this.moveDirectionX) && Game.frameCount % Math.round(Spell.framesPerTick / 16))
-			new SpellTrail(this);
+		// if((this.moveDirectionY || this.moveDirectionX) && Game.frameCount % Math.round(Spell.framesPerTick / 16))
+		// 	new SpellTrail(this);
+	}
+	
+	destroy() {
+		super.destroy();
+		Game.removeRepeatable(this.trailRepeatableId);
 	}
 	
 }

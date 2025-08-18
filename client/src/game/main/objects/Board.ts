@@ -2,15 +2,15 @@ import GameObject from "../../engine/GameObject.ts";
 import Game from "../../engine/Game.ts";
 import Spell from "./Spell.ts";
 import boardSprite from "../sprites/board.png";
-import type CastHandler from "../castHandlers/CastHandler.ts";
+import type Player from "../castHandlers/Player.ts";
 
 export default class Board extends GameObject {
-	readonly player1: CastHandler;
-	readonly player2: CastHandler;
+	readonly player1: Player;
+	readonly player2: Player;
 	topLeftTileX: number;
 	topLeftTileY: number;
 
-	constructor(player1: CastHandler, player2: CastHandler) {
+	constructor(player1: Player, player2: Player) {
 		super(0, 0, 64, 180, boardSprite);
 		this.middleX = Game.screenWidth / 2;
 		this.middleY = Game.screenHeight / 2;
@@ -33,12 +33,8 @@ export default class Board extends GameObject {
 			&& (y === undefined || (y - this.topLeftTileY) % 16 === 0);
 	}
 	
-	validateCast(newSpell: Spell) {
-		return !newSpell.getCollisionsWithType(Spell).some(spell => spell.playerNum === newSpell.playerNum);
-	}
-	
-	castSpell(playerNum: PlayerNum) {
-		const player: CastHandler = [this.player1, this.player2][playerNum - 1];
+	initiatePlayerCast(playerNum: PlayerNum): void {
+		const player: Player = playerNum === 1? this.player1 : this.player2;
 		const rank: Rank = playerNum === 1? 0 : 9;
 		const cast: [Tier, Power, Lane] | null = player.castSpell();
 		
@@ -51,9 +47,17 @@ export default class Board extends GameObject {
 		}
 	}
 	
+	validateCast(newSpell: Spell) {
+		return !newSpell.getCollisionsWithType(Spell).some(spell => spell.playerNum === newSpell.playerNum);
+	}
+	
 	step() {
-		this.castSpell(1);
-		this.castSpell(2);
+		const fluxPerSecond = 1;
+		this.player1.flux = Math.min(10, this.player1.flux + fluxPerSecond * (Game.deltaTime / 1000));
+		this.player2.flux = Math.min(10, this.player2.flux + fluxPerSecond * (Game.deltaTime / 1000));
+		
+		this.initiatePlayerCast(1);
+		this.initiatePlayerCast(2);
 	}
 	
 }
