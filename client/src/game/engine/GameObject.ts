@@ -151,13 +151,14 @@ export default abstract class GameObject {
 		return this.top + this._hitboxBottom;
 	}
 	
-	
+	 count: number = 0;
 	set animatedSprite(spriteImages: string[]) {
 		this.#spriteImages = spriteImages;
 		this.sprite = spriteImages[0];
 		Game.removeRepeatable(this.animationRepeatableId);
 		this.animationRepeatableId = null;
 		this.animationRepeatableId = Game.addRepeatable(() => {
+			console.log(this.count++, "repeatable")
 			if(!this.#spriteImages) throw new Error("sprite images for animation not set")
 			this.imageIndex = (this.imageIndex + 1) % this.#spriteImages.length;
 			this.sprite = this.#spriteImages[this.imageIndex];

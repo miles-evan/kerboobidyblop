@@ -183,7 +183,7 @@ export default class Game {
 	
 	
 	// repeatables are functions that get called at a set rate like 5 times per second
-	// use this instead of setInterval because setInterval won't time it properly
+	// use this instead of setInterval because this will time more accurately alongside the game's framerate
 	static _repeatables: Record<RepeatableId, Repeatable> = {}
 	private static nextRepeatableId: RepeatableId = 0;
 	static addRepeatable(fn: AnyFunction, timesPerSecond: Hertz): RepeatableId {
