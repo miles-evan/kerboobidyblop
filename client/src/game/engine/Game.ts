@@ -3,17 +3,19 @@ import GameObject from "./GameObject.ts";
 
 export default class Game {
 	static _gameObjects: GameObject[] = [];
-	static maxFrameRate: Hertz = 60; // frames per second
+	static instanceCount: number = 0;
+	static _instanceCounts: Record<string, number> = {};
+	static maxFrameRate: FramesPerSecond = 60;
 	static isRunning: boolean = false;
 	static _screen: HTMLElement | null;
-	static screenWidth: number;
-	static screenHeight: number;
-	static mouseX: number;
-	static mouseY: number;
+	static screenWidth: Pixels;
+	static screenHeight: Pixels;
+	static mouseX: Pixels;
+	static mouseY: Pixels;
 	static lockPositionsToVirtualPixels: boolean = false;
-	private static keysDown: Record<Key, number> = {};
-	private static lastFrameTimeStamp: number = 0;
-	private static currentFrameTimeStamp: number = 0;
+	private static keysDown: Record<Key, Time> = {};
+	private static lastFrameTimeStamp: Time = 0;
+	private static currentFrameTimeStamp: Time = 0;
 	private static timeoutId: number | null = null;
 	private static onKeyDown: (e: KeyboardEvent) => void;
 	private static onKeyUp: (e: KeyboardEvent) => void;
@@ -22,7 +24,7 @@ export default class Game {
 	private static onMouseMove: (e: MouseEvent) => void;
 	static #frameCount: number = 0;
 	static globalSteps: AnyFunction[] = [];
-	static #timeStart: number = 0;
+	static #timeStart: Time = 0;
 	
 	
 	static init(screen: HTMLElement): boolean {
@@ -74,22 +76,24 @@ export default class Game {
 		Game._screen = null;
 		Game._gameObjects.forEach(gameObject => gameObject.destroy());
 		Game._gameObjects = [];
+		Game._instanceCounts = {};
+		Game.instanceCount = 0;
 		return true;
 	}
 	
 	
-	static _addGameObjects(...gameObjects: GameObject[]): void {
-		gameObjects.forEach(gameObject => Game._gameObjects.push(gameObject));
+	static _appendGameObject(gameObject: GameObject): void {
+		Game.instanceCount ++;
+		Game._instanceCounts[gameObject.constructor.name] =
+			1 + (Game._instanceCounts[gameObject.constructor.name] ?? 0);
+		Game._gameObjects.push(gameObject);
 	}
 	
-	static _removeGameObject(gameObject: GameObject): void {
+	static _popGameObject(gameObject: GameObject): void {
+		Game.instanceCount --;
+		Game._instanceCounts[gameObject.constructor.name] --;
 		gameObject._object.remove();
 		Game._gameObjects = Game._gameObjects.filter(element => element !== gameObject);
-	}
-	
-	static removeAllGameObjects(): void {
-		Game._gameObjects.forEach(gameObject => gameObject._object.remove());
-		Game._gameObjects = [];
 	}
 	
 	
@@ -111,7 +115,7 @@ export default class Game {
 	
 	
 	static objectCollidedWithType(
-		gameObject: GameObject, type: Constructor<GameObject>, x?: number, y?: number
+		gameObject: GameObject, type: Constructor<GameObject>, x?: Pixels, y?: Pixels
 	): boolean {
 		
 		return gameObject.withTempPosition(x, y, () => {
@@ -123,7 +127,7 @@ export default class Game {
 	}
 	
 	static getObjectsCollisionsWithType<T extends GameObject>(
-		gameObject: GameObject, type: Constructor<T>, x?: number, y?: number
+		gameObject: GameObject, type: Constructor<T>, x?: Pixels, y?: Pixels
 	): T[] {
 		
 		return gameObject.withTempPosition(x, y, () => {
@@ -143,11 +147,11 @@ export default class Game {
 		return key in Game.keysDown;
 	}
 	
-	static isKeyPressed(key: Key) {
-		const timePressed: number | undefined = Game.keysDown[key];
+	static isKeyPressed(key: Key): boolean {
+		const timePressed: Time | undefined = Game.keysDown[key];
 		if(timePressed === undefined)
 			return false;
-		return timePressed >= Game.lastFrameTimeStamp && timePressed <= Game.currentFrameTimeStamp;
+		return Game.justHappened(timePressed);
 	}
 	
 	
@@ -159,7 +163,7 @@ export default class Game {
 	
 	
 	// milliseconds since last frame
-	static get deltaTime(): number {
+	static get deltaTime(): Milliseconds {
 		return Game.lastFrameTimeStamp?
 			Game.currentFrameTimeStamp - Game.lastFrameTimeStamp
 			: 1000 / Game.maxFrameRate;
@@ -172,13 +176,24 @@ export default class Game {
 	
 	
 	// in milliseconds
-	static get timeSinceStart(): number {
+	static get timeSinceStart(): Milliseconds {
 		return Date.now() - Game.#timeStart;
 	}
 	
 	
-	static get frameCount() {
+	// returns whether a time occured between the last frame and current frame
+	static justHappened(time: Time): boolean {
+		return time >= Game.lastFrameTimeStamp && time <= Game.currentFrameTimeStamp;
+	}
+	
+	
+	static get frameCount(): number {
 		return Game.#frameCount;
+	}
+	
+	
+	static getInstanceCount<T extends GameObject>(type: Constructor<T>): number {
+		return Game._instanceCounts[type.name];
 	}
 	
 	
@@ -193,12 +208,12 @@ export default class Game {
 		return Game.nextRepeatableId ++;
 	}
 	static removeRepeatable(id: RepeatableId | null): void {
-		if(id) delete Game._repeatables[id];
+		if(id !== null) delete Game._repeatables[id];
 	}
 	private static runRepeatables(): void {
 		Object.values(Game._repeatables).forEach(repeatable => {
 			const now: Time = Date.now();
-			const period: number = 1000 / repeatable.timesPerSecond; // seconds per run
+			const period: Milliseconds = 1000 / repeatable.timesPerSecond;
 			if(now - repeatable.timeOfLastFrameIdeally >= period) {
 				repeatable.fn();
 				repeatable.timeOfLastFrameIdeally += period;
@@ -217,7 +232,7 @@ export default class Game {
 		Game._gameObjects.forEach(gameObject => gameObject.update());
 		Game.runRepeatables();
 		if(Game.isRunning) {
-			const timeSinceFrameStart = Date.now() - Game.currentFrameTimeStamp;
+			const timeSinceFrameStart: Milliseconds = Date.now() - Game.currentFrameTimeStamp;
 			Game.timeoutId = setTimeout(Game.doSteps, Math.max(0, 1000 / Game.maxFrameRate - timeSinceFrameStart));
 		}
 		Game.#frameCount ++;

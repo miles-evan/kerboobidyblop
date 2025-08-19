@@ -25,14 +25,6 @@ export default class Board extends GameObject {
 		return [this.topLeftTileX + 16*lane, this.topLeftTileY + 16*(9-rank)];
 	}
 	
-	positionLinesUpWithTile(x: number | undefined, y: number | undefined, round: boolean = false): boolean {
-		// if you pass undefined, then it counts as being lined up
-		if(round && x) x = Math.round(x);
-		if(round && y) y = Math.round(y);
-		return (x === undefined || (x - this.topLeftTileX) % 16 === 0)
-			&& (y === undefined || (y - this.topLeftTileY) % 16 === 0);
-	}
-	
 	initiatePlayerCast(playerNum: PlayerNum): void {
 		const player: Player = playerNum === 1? this.player1 : this.player2;
 		const rank: Rank = playerNum === 1? 0 : 9;
@@ -47,17 +39,23 @@ export default class Board extends GameObject {
 		}
 	}
 	
-	validateCast(newSpell: Spell) {
+	validateCast(newSpell: Spell): boolean {
 		return !newSpell.getCollisionsWithType(Spell).some(spell => spell.playerNum === newSpell.playerNum);
 	}
 	
-	step() {
+	step(): void {
 		const fluxPerSecond = 1;
 		this.player1.flux = Math.min(10, this.player1.flux + fluxPerSecond * (Game.deltaTime / 1000));
 		this.player2.flux = Math.min(10, this.player2.flux + fluxPerSecond * (Game.deltaTime / 1000));
 		
 		this.initiatePlayerCast(1);
 		this.initiatePlayerCast(2);
+	}
+	
+	destroy(): void {
+		super.destroy();
+		Game.removeRepeatable(Spell.tileTickRepeatableId);
+		Spell.tileTickRepeatableId = null;
 	}
 	
 }
