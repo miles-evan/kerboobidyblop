@@ -1,4 +1,4 @@
-import GameObject from "./GameObject.ts";
+import type GameObject from "./GameObject.ts";
 
 
 export default class Game {
@@ -91,7 +91,8 @@ export default class Game {
 	
 	static _popGameObject(gameObject: GameObject): void {
 		Game.instanceCount --;
-		Game._instanceCounts[gameObject.constructor.name] --;
+		Game._instanceCounts[gameObject.constructor.name] =
+			-1 + (Game._instanceCounts[gameObject.constructor.name] ?? 0);
 		gameObject._object.remove();
 		Game._gameObjects = Game._gameObjects.filter(element => element !== gameObject);
 	}
@@ -193,7 +194,7 @@ export default class Game {
 	
 	
 	static getInstanceCount<T extends GameObject>(type: Constructor<T>): number {
-		return Game._instanceCounts[type.name];
+		return Game._instanceCounts[type.name] ?? 0;
 	}
 	
 	
