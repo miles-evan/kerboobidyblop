@@ -30,12 +30,13 @@ export default class Spell extends GameObject {
 			if(this.yVelocity)
 				new SpellTrail(Math.round(this.x), Math.round(this.y), this.power)
 		}, Spell.velocity);
-		
-		if(!Spell.tileTickRepeatableId) {
-			Spell.tileTickRepeatableId = Game.addRepeatable(() => {
-				Spell.lastTileTickTime = Date.now();
-			}, Spell.velocity / 16);
-		}
+	}
+	
+	
+	static syncTiles(): void {
+		Spell.tileTickRepeatableId = Game.addRepeatable(() => {
+			Spell.lastTileTickTime = Date.now();
+		}, Spell.velocity / 16);
 	}
 
 

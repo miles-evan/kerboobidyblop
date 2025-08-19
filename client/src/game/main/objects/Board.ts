@@ -18,6 +18,8 @@ export default class Board extends GameObject {
 		this.player2 = player2;
 		this.depth = 2;
 		[this.topLeftTileX, this.topLeftTileY] = [this.x + 8, this.y + 10];
+		
+		Spell.syncTiles();
 	}
 	
 	getPositionOfTile(lane: Lane, rank: Rank): [number, number] {
