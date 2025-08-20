@@ -7,5 +7,5 @@ export default function room1() {
 	Game.screenWidth = 96;
 	Game.screenHeight = 180;
 	
-	new Board(new KeyboardInputPlayer(), new RandomBot(0));
+	new Board(new KeyboardInputPlayer(), new RandomBot());
 }

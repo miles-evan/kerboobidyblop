@@ -1,25 +1,28 @@
 import GameObject from "../../engine/GameObject.ts";
-
+import Game from "../../engine/Game.ts";
 
 export default class SpellTrail extends GameObject {
 	
-	decayRate: number;
+	initialOpacity: number;
+	static readonly lifeTime: Seconds = 1;
 	
 	constructor(x: number, y: number, power: Power) {
 		super(x, y, 16, 16, `/src/game/main/sprites/spell-trails/spell-trail-${power}.png`);
 		
-		[this.opacity, this.decayRate] = {
-			"none": [0.5, 0.005],
-			"retreater": [0.5, 0.005],
-			"dodger": [0.25, 0.0025],
-			"hopper": [0.125, 0.00125]
+		this.initialOpacity = {
+			"none": 0.5,
+			"retreater": 0.5,
+			"dodger": 0.25,
+			"hopper": 0.125,
 		}[power];
+		
+		this.opacity = this.initialOpacity;
 		
 		this.depth = 1;
 	}
 	
 	step() {
-		this.opacity -= this.decayRate;
+		this.opacity -= Game.deltaTime * ((this.initialOpacity / SpellTrail.lifeTime) / 1000);
 		if(this.opacity <= 0)
 			this.destroy();
 	}

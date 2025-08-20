@@ -10,12 +10,13 @@ export default class Spell extends GameObject {
 	readonly tier: Tier; // the spell's number
 	power: Power;
 	readonly playerNum: PlayerNum; // player 1 is bottom-up, player 2 is top-down
-	moveDirectionX: -1 | 0 | 1 = 0;
-	moveDirectionY: -1 | 0 | 1 = 0;
 	board: Board;
-	static readonly velocity: number = 0.006; // pixels per millisecond
-	static readonly framesPerTick: number = Math.round(16 / Spell.velocity / 1000 * Game.maxFrameRate);
-	private trailRepeatableId: RepeatableId;
+	private readonly trailRepeatableId: RepeatableId;
+	
+	static readonly secondsPerTile: Seconds = 1.5;
+	static readonly velocity: PixelsPerSecond = 16 / Spell.secondsPerTile;
+	static tileTickRepeatableId: RepeatableId | null = null;
+	static lastTileTickTime: Time = 0;
 	
 	constructor(x: number, y: number, lane: Lane, tier: Tier, playerNum: PlayerNum, power: Power = "none", board: Board) {
 		super(x, y, 16, 16, `/src/game/main/sprites/spells/spell-player${playerNum}-tier${tier}.png`);
@@ -25,10 +26,17 @@ export default class Spell extends GameObject {
 		this.power = power;
 		this.board = board;
 		
-		this.trailRepeatableId = Game.addRepeatable(
-			() => new SpellTrail(Math.round(this.x), Math.round(this.y), this.power),
-			1000 * Spell.velocity
-		);
+		this.trailRepeatableId = Game.addRepeatable(() => {
+			if(this.yVelocity)
+				new SpellTrail(Math.round(this.x), Math.round(this.y), this.power)
+		}, Spell.velocity);
+	}
+	
+	
+	static syncTiles(): void {
+		Spell.tileTickRepeatableId = Game.addRepeatable(() => {
+			Spell.lastTileTickTime = Date.now();
+		}, Spell.velocity / 16);
 	}
 
 
@@ -47,6 +55,10 @@ export default class Spell extends GameObject {
 		}
 
 		return tierCost[tier] * powerCost[power];
+	}
+	
+	static onTileTick(): boolean {
+		return Game.justHappened(Spell.lastTileTickTime);
 	}
 
 	static readonly tierEliminationMap = { // map of which spells beat who
@@ -72,19 +84,19 @@ export default class Spell extends GameObject {
 	
 	private retreater(): void {
 		// stop retreating if lined up with a tile and not colliding with an ally
-		if(Game.frameCount % Spell.framesPerTick === 0 && !this.collidedWithAlly())
-			this.moveDirectionY = this.playerNum === 1? -1 : 1;
+		if(Spell.onTileTick())
+			this.yVelocity = this.playerNum === 1? -Spell.velocity : Spell.velocity;
 		
-		const colliders: Spell[] = this.getCollisionsWithType(Spell, this.x, this.y + 16 * this.moveDirectionY);
+		const colliders: Spell[] = this.getCollisionsWithType(Spell, this.x, this.y + 16 * Math.sign(this.yVelocity));
 		colliders.forEach(collider => {
 			if(collider.kills(this))
-				this.moveDirectionY = this.playerNum === 1? 1 : -1; // turn around
+				this.yVelocity = this.playerNum === 1? Spell.velocity : -Spell.velocity; // turn around
 		});
 	}
 	
 	
 	private dodger(): void {
-		if(this.collidedWithEnemy(this.x, this.y + 32 * this.moveDirectionY)) {
+		if(this.collidedWithEnemy(this.x, this.y + 32 * Math.sign(this.yVelocity))) {
 			if(!this.collidedWithAlly(this.x - 16) && this.lane !== 0)
 				this.changeLanes(-1);
 			else if(!this.collidedWithAlly(this.x + 16) && this.lane !== 2)
@@ -96,7 +108,7 @@ export default class Spell extends GameObject {
 		// start hopping if there are any enemies diagonally, no allies next to you there, and you're not alr hopping
 		([1, -1] as const).forEach(dir => {
 			if(
-				this.collidedWithEnemy(this.x + 16*dir, this.y + 32 * this.moveDirectionY)
+				this.collidedWithEnemy(this.x + 16*dir, this.y + 32 * Math.sign(this.yVelocity))
 				&& !this.collidedWithAlly(this.x + 16*dir, this.y)
 			) {
 				this.changeLanes(dir);
@@ -106,9 +118,9 @@ export default class Spell extends GameObject {
 	
 	
 	private changeLanes(dir: -1 | 0 | 1) {
-		if(!dir || !this.moveDirectionY || this.moveDirectionX) return;
+		if(!dir || !this.yVelocity || this.xVelocity) return;
 		this.lane += dir;
-		this.moveDirectionX = dir;
+		this.xVelocity = dir * Spell.velocity;
 	}
 
 
@@ -127,28 +139,22 @@ export default class Spell extends GameObject {
 		this.handleCollisions();
 		
 		// start moving when lined up with a tile
-		if(Game.frameCount % Spell.framesPerTick === 0)
-			this.moveDirectionY = this.playerNum === 1? -1 : 1;
+		if(Spell.onTileTick())
+			this.yVelocity = this.playerNum === 1? -Spell.velocity : Spell.velocity;
 		
 		// changing lanes
 		const targetX: number = this.board.getPositionOfTile(this.lane, 0)[0];
-		this.x += Spell.velocity * Game.deltaTime * this.moveDirectionX;
 		// if you're about to finish or finished changing lanes (algebraically simplified equation), then stop
 		if(
-			this.moveDirectionX !== Math.sign((targetX - this.x) * (1 - Spell.velocity * Game.deltaTime))
-			|| this.moveDirectionX !== Math.sign(targetX - this.x)
+			Math.sign(this.xVelocity) !== Math.sign((targetX - this.x) * (1 - (Spell.velocity / 1000) * Game.deltaTime))
+			|| Math.sign(this.xVelocity) !== Math.sign(targetX - this.x)
 		) {
 			this.x = targetX;
-			this.moveDirectionX = 0;
+			this.xVelocity = 0;
 		}
-		
-		this.y += Spell.velocity * Game.deltaTime * this.moveDirectionY;
 		
 		if(this.top > Game.screenHeight || this.bottom < 0)
 			this.destroy();
-		
-		// if((this.moveDirectionY || this.moveDirectionX) && Game.frameCount % Math.round(Spell.framesPerTick / 16))
-		// 	new SpellTrail(this);
 	}
 	
 	destroy() {
