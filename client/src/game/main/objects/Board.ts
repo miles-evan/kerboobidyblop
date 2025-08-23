@@ -23,7 +23,7 @@ export default class Board extends GameObject {
 		Spell.syncTiles();
 	}
 	
-	getPositionOfTile(lane: Lane, rank: Rank): [number, number] {
+	getPositionOfTile(lane: Lane, rank: Rank): [Pixels, Pixels] {
 		// lane 0 is left most col, rank 0 is bottom most row
 		return [this.topLeftTileX + 16*lane, this.topLeftTileY + 16*(9-rank)];
 	}

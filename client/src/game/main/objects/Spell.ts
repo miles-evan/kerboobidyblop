@@ -18,7 +18,7 @@ export default class Spell extends GameObject {
 	static tileTickRepeatableId: RepeatableId | null = null;
 	static lastTileTickTime: Time = 0;
 	
-	constructor(x: number, y: number, lane: Lane, tier: Tier, playerNum: PlayerNum, power: Power = "none", board: Board) {
+	constructor(x: Pixels, y: Pixels, lane: Lane, tier: Tier, playerNum: PlayerNum, power: Power = "none", board: Board) {
 		super(x, y, 16, 16, `/src/game/main/sprites/spells/spell-player${playerNum}-tier${tier}.png`);
 		this.lane = lane;
 		this.tier = tier;
