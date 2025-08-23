@@ -9,6 +9,7 @@ export default class Board extends GameObject {
 	readonly player2: Player;
 	topLeftTileX: number;
 	topLeftTileY: number;
+	fluxPerSecond: number = 1;
 
 	constructor(player1: Player, player2: Player) {
 		super(0, 0, 64, 180, boardSprite);
@@ -27,28 +28,28 @@ export default class Board extends GameObject {
 		return [this.topLeftTileX + 16*lane, this.topLeftTileY + 16*(9-rank)];
 	}
 	
+	// validate flux and collision and spawn spell
 	initiatePlayerCast(playerNum: PlayerNum): void {
 		const player: Player = playerNum === 1? this.player1 : this.player2;
 		const rank: Rank = playerNum === 1? 0 : 9;
-		const cast: [Tier, Power, Lane] | null = player.castSpell();
+		const cast: [Tier, Power, Lane] | null = player.tryCast();
 		
-		if(cast) {
-			const [tier, power, lane] = cast;
-			const [x, y] = this.getPositionOfTile(lane, rank);
-			const newSpell = new Spell(x, y, lane, tier, playerNum, power, this);
-			if(!this.validateCast(newSpell))
-				newSpell.destroy();
-		}
-	}
-	
-	validateCast(newSpell: Spell): boolean {
-		return !newSpell.getCollisionsWithType(Spell).some(spell => spell.playerNum === newSpell.playerNum);
+		if(!cast) return;
+		
+		const [tier, power, lane] = cast;
+		const fluxCost: number = Spell.fluxCost(tier, power);
+		if(player.flux < fluxCost)
+			return;
+		const [x, y] = this.getPositionOfTile(lane, rank);
+		const newSpell = new Spell(x, y, lane, tier, playerNum, power, this);
+		if(newSpell.collidedWithAlly())
+			return newSpell.destroy();
+		player.flux -= fluxCost;
 	}
 	
 	step(): void {
-		const fluxPerSecond = 1;
-		this.player1.flux = Math.min(10, this.player1.flux + fluxPerSecond * (Game.deltaTime / 1000));
-		this.player2.flux = Math.min(10, this.player2.flux + fluxPerSecond * (Game.deltaTime / 1000));
+		this.player1.flux = Math.min(10, this.player1.flux + this.fluxPerSecond * (Game.deltaTime / 1000));
+		this.player2.flux = Math.min(10, this.player2.flux + this.fluxPerSecond * (Game.deltaTime / 1000));
 		
 		this.initiatePlayerCast(1);
 		this.initiatePlayerCast(2);

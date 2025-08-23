@@ -10,10 +10,10 @@ export default class SpellTrail extends GameObject {
 		super(x, y, 16, 16, `/src/game/main/sprites/spell-trails/spell-trail-${power}.png`);
 		
 		this.initialOpacity = {
-			"none": 0.5,
-			"retreater": 0.5,
-			"dodger": 0.25,
-			"hopper": 0.125,
+			"none": 1,
+			"retreater": 1,
+			"dodger": 0.5,
+			"hopper": 0.25,
 		}[power];
 		
 		this.opacity = this.initialOpacity;

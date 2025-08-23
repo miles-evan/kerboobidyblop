@@ -28,12 +28,14 @@ export default class Spell extends GameObject {
 		
 		this.trailRepeatableId = Game.addRepeatable(() => {
 			if(this.yVelocity)
-				new SpellTrail(Math.round(this.x), Math.round(this.y), this.power)
-		}, Spell.velocity);
+				new SpellTrail(this.x, this.y, this.power)
+		}, Spell.velocity / 2);
 	}
 	
 	
+	// call once to sync
 	static syncTiles(): void {
+		Game.removeRepeatable(Spell.tileTickRepeatableId);
 		Spell.tileTickRepeatableId = Game.addRepeatable(() => {
 			Spell.lastTileTickTime = Date.now();
 		}, Spell.velocity / 16);
@@ -96,7 +98,7 @@ export default class Spell extends GameObject {
 	
 	
 	private dodger(): void {
-		if(this.collidedWithEnemy(this.x, this.y + 32 * Math.sign(this.yVelocity))) {
+		if(this.collidedWithEnemy(this.x, this.y + 33 * Math.sign(this.yVelocity))) {
 			if(!this.collidedWithAlly(this.x - 16) && this.lane !== 0)
 				this.changeLanes(-1);
 			else if(!this.collidedWithAlly(this.x + 16) && this.lane !== 2)

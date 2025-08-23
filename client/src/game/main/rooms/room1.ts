@@ -6,6 +6,10 @@ import Game from "../../engine/Game.ts";
 export default function room1() {
 	Game.screenWidth = 96;
 	Game.screenHeight = 180;
+	Game.globalSteps.push(() => {
+		if(Game.isKeyPressed(" "))
+			Game.stop();
+	});
 	
 	new Board(new KeyboardInputPlayer(), new RandomBot());
 }
