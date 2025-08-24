@@ -13,7 +13,6 @@ export default class KeyboardInputPlayer extends Player {
 	
 	constructor() {
 		super();
-		
 		new Logger(5, 10, () => this.nextTier + " " + this.nextPower);
 		new Logger(5, 30, () => Math.round(this.flux));
 	}

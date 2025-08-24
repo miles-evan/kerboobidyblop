@@ -1,8 +1,7 @@
 import Board from "../objects/Board.ts";
-import KeyboardInputPlayer from "../castHandlers/KeyboardInputPlayer.ts";
 import RandomBot from "../castHandlers/RandomBot.ts";
 import Game from "../../engine/Game.ts";
-import CastPad from "../objects/CastPad.ts";
+import CastPadPlayer from "../castHandlers/CastPadPlayer.ts";
 
 export default function room1() {
 	Game.screenWidth = 192;
@@ -12,6 +11,5 @@ export default function room1() {
 			Game.stop();
 	});
 	
-	new Board(new KeyboardInputPlayer(), new RandomBot());
-	new CastPad(120, 30);
+	new Board(new CastPadPlayer(), new RandomBot());
 }

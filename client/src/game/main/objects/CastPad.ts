@@ -14,7 +14,7 @@ import cost8 from "../sprites/cast-pad/cost-8.png";
 
 export default class CastPad extends GameObject {
 	
-	constructor(x: Pixels, y: Pixels) {
+	constructor(x: Pixels, y: Pixels, onCast: (cast: [Tier, Power, Lane]) => any) {
 		super(x, y, 64, 64, castPadSprite);
 		
 		const costSprites: string[] = [cost1, cost2, cost3, cost4, cost5, cost6, cost7, cost8];
@@ -23,7 +23,10 @@ export default class CastPad extends GameObject {
 				const tier: Tier = t + 1 as Tier;
 				const power: Power = ["dodger", "retreater", "hopper", "none"][p] as Power;
 				const cost: Flux = Spell.fluxCost(tier, power);
-				new ShowWhenHoveredOver(x + 16*t, y + 16*p, 16, 16, costSprites[cost - 1] ?? "");
+				const costObj = new ShowWhenHoveredOver(x + 16*t, y + 16*p, 16, 16, costSprites[cost - 1] ?? "");
+				costObj.onClick = () => onCast([tier, power, 0]);
+				costObj.onMiddleClick = () => onCast([tier, power, 1]);
+				costObj.onRightClick = () => onCast([tier, power, 2]);
 			}
 		}
 	}
