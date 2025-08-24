@@ -11,5 +11,5 @@ export default function room1() {
 			Game.stop();
 	});
 	
-	new Board(new CastPadPlayer(), new RandomBot());
+	new Board(new CastPadPlayer(), new RandomBot(0.005));
 }

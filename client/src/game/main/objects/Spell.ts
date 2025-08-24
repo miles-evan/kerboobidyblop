@@ -98,7 +98,7 @@ export default class Spell extends GameObject {
 	
 	
 	private dodger(): void {
-		if(this.collidedWithEnemy(this.x, this.y + 33 * Math.sign(this.yVelocity))) {
+		if(this.collidedWithEnemy(this.x, this.y + 34 * Math.sign(this.yVelocity))) {
 			if(!this.collidedWithAlly(this.x - 16) && this.lane !== 0)
 				this.changeLanes(-1);
 			else if(!this.collidedWithAlly(this.x + 16) && this.lane !== 2)
