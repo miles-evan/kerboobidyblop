@@ -179,6 +179,22 @@ export default abstract class GameObject {
 		return this.top + this._hitboxBottom;
 	}
 	
+	
+	get relativeMouseX(): Pixels {
+		return Game.mouseX - this.x;
+	}
+	
+	get relativeMouseY(): Pixels {
+		return Game.mouseY - this.x;
+	}
+	
+	
+	get mouseHovered(): boolean {
+		return Game.mouseX > this.left && Game.mouseX < this.right
+			&& Game.mouseY > this.top && Game.mouseY < this.bottom;
+	}
+	
+	
 	set animatedSprite(spriteImages: string[]) {
 		if(spriteImages.length === 0)
 			throw new Error("can't set animation without sprites");

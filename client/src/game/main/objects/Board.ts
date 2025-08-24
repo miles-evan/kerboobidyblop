@@ -12,8 +12,7 @@ export default class Board extends GameObject {
 	fluxPerSecond: number = 1;
 
 	constructor(player1: Player, player2: Player) {
-		super(0, 0, 64, 180, boardSprite);
-		this.middleX = Game.screenWidth / 2;
+		super(30, 0, 64, 180, boardSprite);
 		this.middleY = Game.screenHeight / 2;
 		this.player1 = player1;
 		this.player2 = player2;
@@ -37,7 +36,7 @@ export default class Board extends GameObject {
 		if(!cast) return;
 		
 		const [tier, power, lane] = cast;
-		const fluxCost: number = Spell.fluxCost(tier, power);
+		const fluxCost: Flux = Spell.fluxCost(tier, power);
 		if(player.flux < fluxCost)
 			return;
 		const [x, y] = this.getPositionOfTile(lane, rank);

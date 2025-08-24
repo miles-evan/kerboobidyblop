@@ -27,7 +27,7 @@ export default function Screen({ children }: { children?: ReactElement }) {
 				display: "flex",
 				width: "auto",
 				height: "70vh",
-				aspectRatio: "400 / 720",
+				aspectRatio: "800 / 720",
 			}}
 		>
 			{children}

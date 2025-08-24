@@ -42,7 +42,7 @@ export default class Spell extends GameObject {
 	}
 
 
-	static fluxCost(tier: Tier, power: Power): number {
+	static fluxCost(tier: Tier, power: Power): Flux {
 		const tierCost: Record<Tier, number> = {
 			1: 1,
 			2: 2,
