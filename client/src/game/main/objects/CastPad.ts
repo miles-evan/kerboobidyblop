@@ -10,12 +10,18 @@ import cost5 from "../sprites/cast-pad/cost-5.png";
 import cost6 from "../sprites/cast-pad/cost-6.png";
 import cost7 from "../sprites/cast-pad/cost-7.png";
 import cost8 from "../sprites/cast-pad/cost-8.png";
+import Game from "../../engine/Game.ts";
 
 
 export default class CastPad extends GameObject {
 	
+	hoveredCast: [Tier, Power] = [1, "none"];
+	onCast: (cast: [Tier, Power, Lane]) => any;
+	
 	constructor(x: Pixels, y: Pixels, onCast: (cast: [Tier, Power, Lane]) => any) {
 		super(x, y, 64, 64, castPadSprite);
+		
+		this.onCast = onCast;
 		
 		const costSprites: string[] = [cost1, cost2, cost3, cost4, cost5, cost6, cost7, cost8];
 		for(let t: number = 0; t < 4; t ++) {
@@ -23,7 +29,9 @@ export default class CastPad extends GameObject {
 				const tier: Tier = t + 1 as Tier;
 				const power: Power = ["dodger", "retreater", "hopper", "none"][p] as Power;
 				const cost: Flux = Spell.fluxCost(tier, power);
-				const costObj = new ShowWhenHoveredOver(x + 16*t, y + 16*p, 16, 16, costSprites[cost - 1] ?? "");
+				const costObj = new ShowWhenHoveredOver(x + 16*t, y + 16*p, 16, 16, costSprites[cost - 1] ?? "", () => {
+					this.hoveredCast = [tier, power];
+				});
 				costObj.onClick = () => onCast([tier, power, 0]);
 				costObj.onMiddleClick = () => onCast([tier, power, 1]);
 				costObj.onRightClick = () => onCast([tier, power, 2]);
@@ -32,7 +40,9 @@ export default class CastPad extends GameObject {
 	}
 	
 	step(): void {
-	
+		if(Game.isKeyPressed("1")) this.onCast([...this.hoveredCast, 0])
+		else if(Game.isKeyPressed("2")) this.onCast([...this.hoveredCast, 1])
+		else if(Game.isKeyPressed("3")) this.onCast([...this.hoveredCast, 2])
 	}
 	
 }
