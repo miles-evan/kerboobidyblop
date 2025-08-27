@@ -3,7 +3,7 @@
 export default abstract class Player {
 	
 	health: number; // Should be between 0 and 10, but I don't think there's a way to enforce that
-	flux: number;
+	flux: Flux;
 	
 	protected constructor() {
 		this.health = 100;

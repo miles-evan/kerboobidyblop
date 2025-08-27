@@ -18,7 +18,7 @@ export default class Spell extends GameObject {
 	static tileTickRepeatableId: RepeatableId | null = null;
 	static lastTileTickTime: Time = 0;
 	
-	constructor(x: number, y: number, lane: Lane, tier: Tier, playerNum: PlayerNum, power: Power = "none", board: Board) {
+	constructor(x: Pixels, y: Pixels, lane: Lane, tier: Tier, playerNum: PlayerNum, power: Power = "none", board: Board) {
 		super(x, y, 16, 16, `/src/game/main/sprites/spells/spell-player${playerNum}-tier${tier}.png`);
 		this.lane = lane;
 		this.tier = tier;
@@ -42,7 +42,7 @@ export default class Spell extends GameObject {
 	}
 
 
-	static fluxCost(tier: Tier, power: Power): number {
+	static fluxCost(tier: Tier, power: Power): Flux {
 		const tierCost: Record<Tier, number> = {
 			1: 1,
 			2: 2,
@@ -98,7 +98,7 @@ export default class Spell extends GameObject {
 	
 	
 	private dodger(): void {
-		if(this.collidedWithEnemy(this.x, this.y + 33 * Math.sign(this.yVelocity))) {
+		if(this.collidedWithEnemy(this.x, this.y + 34 * Math.sign(this.yVelocity))) {
 			if(!this.collidedWithAlly(this.x - 16) && this.lane !== 0)
 				this.changeLanes(-1);
 			else if(!this.collidedWithAlly(this.x + 16) && this.lane !== 2)

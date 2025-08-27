@@ -1,6 +1,6 @@
 import Player from "./Player.ts";
 import Game from "../../engine/Game.ts";
-import GameObject from "../../engine/GameObject.ts";
+import Logger from "../objects/Logger.ts";
 
 
 export default class KeyboardInputPlayer extends Player {
@@ -13,17 +13,8 @@ export default class KeyboardInputPlayer extends Player {
 	
 	constructor() {
 		super();
-		
-		// for debugging:
-		const thisRef = this;
-		new class extends GameObject {
-			constructor() {
-				super(5, 10);
-			}
-			step() {
-				this._object.textContent = thisRef.nextTier + " " + thisRef.nextPower;
-			}
-		}
+		new Logger(5, 10, () => this.nextTier + " " + this.nextPower);
+		new Logger(5, 30, () => Math.round(this.flux));
 	}
 	
 	

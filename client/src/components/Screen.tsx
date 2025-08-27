@@ -24,10 +24,8 @@ export default function Screen({ children }: { children?: ReactElement }) {
 			ref={screenRef}
 			style={{
 				border: "1px solid black",
-				display: "flex",
-				width: "auto",
-				height: "70vh",
-				aspectRatio: "400 / 720",
+				width: "75vh",
+				aspectRatio: "800 / 720",
 			}}
 		>
 			{children}
