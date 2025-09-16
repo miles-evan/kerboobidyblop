@@ -9,7 +9,6 @@ export default class Board extends GameObject {
 	readonly player2: Player;
 	topLeftTileX: number;
 	topLeftTileY: number;
-	fluxPerSecond: number = 1;
 
 	constructor(player1: Player, player2: Player) {
 		super(30, 0, 64, 180, boardSprite);
@@ -47,8 +46,8 @@ export default class Board extends GameObject {
 	}
 	
 	step(): void {
-		this.player1.flux = Math.min(10, this.player1.flux + this.fluxPerSecond * (Game.deltaTime / 1000));
-		this.player2.flux = Math.min(10, this.player2.flux + this.fluxPerSecond * (Game.deltaTime / 1000));
+		this.player1.updateFlux();
+		this.player2.updateFlux();
 		
 		this.initiatePlayerCast(1);
 		this.initiatePlayerCast(2);

@@ -1,13 +1,14 @@
 import Player from "./Player.ts";
 import Game from "../../engine/Game.ts";
+import type Fluxometer from "../objects/Fluxometer.ts";
 
 
 export default class RandomBot extends Player {
 	
 	chanceOfMoving: number;
 	
-	constructor(chanceOfMoving: number = 0.002) {
-		super();
+	constructor(fluxometer: Fluxometer | null = null, chanceOfMoving: number = 0.005) {
+		super(fluxometer);
 		this.chanceOfMoving = chanceOfMoving;
 	}
 	
