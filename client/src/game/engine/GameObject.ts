@@ -17,11 +17,12 @@ export default abstract class GameObject {
 	_hitboxBottom: Pixels = 0;
 	originX: Pixels;
 	originY: Pixels;
-	sprite: string | null = null;
+	#sprite: string | null = null;
+	#spriteChanged: boolean = false;
 	#spriteImages: string[] | null = null;
 	#imageSpeed: Hertz = 1;
 	private animationRepeatableId: RepeatableId | null = null;
-	imageIndex: number = 0;
+	#imageIndex: number = 0;
 	opacity: number = 1;
 	onClick: AnyFunction | null = null;
 	onRightClick: AnyFunction | null = null;
@@ -75,8 +76,10 @@ export default abstract class GameObject {
 		this._object.style.width = roundOrNot(this.#width) * Game.virtualScreenSizeMultiplier + "px";
 		this._object.style.height = roundOrNot(this.#height) * Game.virtualScreenSizeMultiplier + "px";
 		this._object.style.transform = "rotate(" + this.rotation + "deg)";
-		this._object.style.backgroundImage = "url(" + this.sprite + ")";
 		this._object.style.opacity = String(this.opacity);
+		if(this.#spriteChanged && this.sprite)
+			Game.preloadImage(this.sprite)
+				.then(() => this._object.style.backgroundImage = "url(" + this.sprite + ")");
 	}
 	
 	
@@ -203,6 +206,14 @@ export default abstract class GameObject {
 	}
 	
 	
+	get sprite(): string | null {
+		return this.#sprite;
+	}
+	set sprite(sprite: string | null) {
+		this.#sprite = sprite;
+		this.#spriteChanged = true;
+	}
+	
 	set animatedSprite(spriteImages: string[]) {
 		if(spriteImages.length === 0)
 			throw new Error("can't set animation without sprites");
@@ -211,10 +222,18 @@ export default abstract class GameObject {
 		Game.removeRepeatable(this.animationRepeatableId);
 		this.animationRepeatableId = null;
 		this.animationRepeatableId = Game.addRepeatable(() => {
-			if(!this.#spriteImages) throw new Error("sprite images for animation not set")
+			if(!this.#spriteImages)
+				throw new Error("sprite images for animation not set");
 			this.imageIndex = (this.imageIndex + 1) % this.#spriteImages.length;
-			this.sprite = this.#spriteImages[this.imageIndex]!;
 		}, this.imageSpeed);
+	}
+	
+	get imageIndex() {
+		return this.#imageIndex;
+	}
+	set imageIndex(imageIndex: number) {
+		this.#imageIndex = imageIndex;
+		this.sprite = this.#spriteImages![imageIndex]!;
 	}
 	
 	get imageSpeed() {
@@ -222,8 +241,14 @@ export default abstract class GameObject {
 	}
 	set imageSpeed(imageSpeed: Hertz) {
 		this.#imageSpeed = imageSpeed;
-		if(this.animationRepeatableId)
+		if(!this.animationRepeatableId)
+			return;
+		if(imageSpeed === 0) {
+			Game.removeRepeatable(this.animationRepeatableId);
+			this.animationRepeatableId = null;
+		} else {
 			Game._repeatables[this.animationRepeatableId]!.timesPerSecond = imageSpeed;
+		}
 	}
 	
 	

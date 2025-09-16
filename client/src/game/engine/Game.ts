@@ -25,6 +25,7 @@ export default class Game {
 	static #frameCount: number = 0;
 	static globalSteps: AnyFunction[] = [];
 	static #timeStart: Time = 0;
+	private static preloadedImages: Record<string, HTMLImageElement> = {};
 	
 	
 	static init(screen: HTMLElement): boolean {
@@ -196,6 +197,22 @@ export default class Game {
 	
 	static getInstanceCount<T extends GameObject>(type: Constructor<T>): number {
 		return Game._instanceCounts[type.name] ?? 0;
+	}
+	
+	
+	static async preloadImage(url: string) {
+		return new Promise<void>(resolve => {
+			if(url in Game.preloadedImages) {
+				resolve();
+				return;
+			}
+			const img = new Image();
+			img.onload = () => {
+				Game.preloadedImages[url] = img;
+				resolve();
+			};
+			img.src = url;
+		});
 	}
 	
 	
