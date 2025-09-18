@@ -71,10 +71,11 @@ export default abstract class GameObject {
 		this.y += (this.yVelocity / 1000) * Game.deltaTime;
 		
 		const roundOrNot: (x: Pixels) => Pixels = Game.lockPositionsToVirtualPixels? Math.round : x => x;
+		const ceilOrNot: (x: Pixels) => Pixels = Game.lockPositionsToVirtualPixels? Math.ceil : x => x;
 		this._object.style.left = roundOrNot(this.left) * Game.virtualScreenSizeMultiplier + "px";
 		this._object.style.top = roundOrNot(this.top) * Game.virtualScreenSizeMultiplier + "px";
-		this._object.style.width = roundOrNot(this.#width) * Game.virtualScreenSizeMultiplier + "px";
-		this._object.style.height = roundOrNot(this.#height) * Game.virtualScreenSizeMultiplier + "px";
+		this._object.style.width = ceilOrNot(this.#width) * Game.virtualScreenSizeMultiplier + "px";
+		this._object.style.height = ceilOrNot(this.#height) * Game.virtualScreenSizeMultiplier + "px";
 		this._object.style.transform = "rotate(" + this.rotation + "deg)";
 		this._object.style.opacity = String(this.opacity);
 		if(this.#spriteChanged && this.sprite)

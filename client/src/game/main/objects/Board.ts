@@ -3,6 +3,7 @@ import Game from "../../engine/Game.ts";
 import Spell from "./Spell.ts";
 import boardSprite from "../sprites/board.png";
 import type Player from "../castHandlers/Player.ts";
+import Endzone from "./Endzone.ts";
 
 export default class Board extends GameObject {
 	readonly player1: Player;
@@ -17,6 +18,9 @@ export default class Board extends GameObject {
 		this.player2 = player2;
 		this.depth = 2;
 		[this.topLeftTileX, this.topLeftTileY] = [this.x + 8, this.y + 10];
+		
+		new Endzone(this.x, this.getPositionOfTile(0, 0)[1] + 16, damage => player1.hurt(damage));
+		new Endzone(this.x, this.getPositionOfTile(0, 9)[1] - 16, damage => player2.hurt(damage));
 		
 		Spell.syncTiles();
 	}

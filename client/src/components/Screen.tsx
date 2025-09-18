@@ -8,7 +8,7 @@ export default function Screen({ children }: { children?: ReactElement }) {
 	
 	
 	useEffect(() => {
-		const cleanup = () => {Game.destroy();};
+		const cleanup = () => { Game.destroy(); };
 		
 		if(!screenRef.current) return cleanup;
 		if(!Game.init(screenRef.current)) return cleanup;

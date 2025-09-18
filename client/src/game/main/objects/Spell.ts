@@ -40,40 +40,21 @@ export default class Spell extends GameObject {
 			Spell.lastTileTickTime = Date.now();
 		}, Spell.velocity / 16);
 	}
-
-
-	static fluxCost(tier: Tier, power: Power): Flux {
-		const tierCost: Record<Tier, number> = {
-			1: 1,
-			2: 2,
-			3: 3,
-			4: 4,
-		}
-		const powerCost: Record<Power, number> = {
-			"none": 1,
-			"retreater": 2,
-			"dodger": 2,
-			"hopper": 2,
-		}
-
-		return tierCost[tier] * powerCost[power];
-	}
 	
 	static onTileTick(): boolean {
 		return Game.justHappened(Spell.lastTileTickTime);
 	}
 
-	static readonly tierEliminationMap = { // map of which spells beat who
-		1: [4],
-		2: [1],
-		3: [2, 1],
-		4: [3, 2],
-	};
+
+	static fluxCost(tier: Tier, power: Power): Flux {
+		return tier * (power === "none"? 1 : 2);
+	}
 	
 	// returns true if this kills collider
 	kills(other: Spell): boolean {
-		return other.playerNum !== this.playerNum
-			&& Spell.tierEliminationMap[this.tier].includes(other.tier);
+		return other.playerNum !== this.playerNum && {
+			1: [4], 2: [1], 3: [2, 1], 4: [3, 2]            // map of which spells beat who
+		}[this.tier].includes(other.tier);
 	}
 	
 	collidedWithEnemy(x?: number, y?: number): boolean {
@@ -83,6 +64,7 @@ export default class Spell extends GameObject {
 	collidedWithAlly(x?: number, y?: number): boolean {
 		return this.getCollisionsWithType(Spell, x, y).some(collider => this.playerNum === collider.playerNum);
 	}
+	
 	
 	private retreater(): void {
 		// stop retreating if lined up with a tile and not colliding with an ally
@@ -134,6 +116,7 @@ export default class Spell extends GameObject {
 		});
 	}
 
+	
 	step(): void {
 		if(this.power !== "none")
 			this[this.power]();
@@ -159,7 +142,8 @@ export default class Spell extends GameObject {
 			this.destroy();
 	}
 	
-	destroy() {
+	
+	destroy(): void {
 		super.destroy();
 		Game.removeRepeatable(this.trailRepeatableId);
 	}
