@@ -1,6 +1,7 @@
 import Player from "./Player.ts";
 import Game from "../../engine/Game.ts";
 import type Fluxometer from "../objects/Fluxometer.ts";
+import Logger from "../objects/Logger.ts";
 
 
 export default class RandomBot extends Player {
@@ -10,6 +11,7 @@ export default class RandomBot extends Player {
 	constructor(fluxometer: Fluxometer | null = null, chanceOfMoving: number = 0.005) {
 		super(fluxometer);
 		this.chanceOfMoving = chanceOfMoving;
+		new Logger(2, 75, () => this.health);
 	}
 	
 	tryCast(): [Tier, Power, Lane] | null {
