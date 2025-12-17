@@ -36,6 +36,7 @@ export default abstract class GameObject {
 		this._object.style.position = "absolute"
 		this._object.style.backgroundRepeat = "no-repeat"
 		this._object.style.backgroundSize = "100% 100%"
+		this._object.style.imageRendering = "pixelated";
 		
 		this.originX = originX;
 		this.originY = originY;

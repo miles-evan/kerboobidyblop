@@ -15,16 +15,16 @@ import Game from "../../engine/Game.ts";
 
 export default class Fluxometer extends GameObject {
 	
-	constructor() {
+	public constructor() {
 		super(30, Game.screenHeight - 16, 64, 16);
 		this.animatedSprite = [f0, f1, f2, f3, f4, f5, f6, f7, f8, f9, f10];
 		this.imageSpeed = 0;
 	}
 	
-	set flux(flux: Flux) {
+	public set flux(flux: Flux) {
 		this.imageIndex = Math.floor(flux);
 	}
 	
-	step(): void {}
+	public step(): void {}
 	
 }
