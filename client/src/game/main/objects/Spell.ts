@@ -6,19 +6,19 @@ import type Board from "./Board.ts";
 
 export default class Spell extends GameObject {
 	
-	lane: Lane;
-	readonly tier: Tier; // the spell's number
-	power: Power;
-	readonly playerNum: PlayerNum; // player 1 is bottom-up, player 2 is top-down
-	board: Board;
+	public lane: Lane;
+	public readonly tier: Tier; // the spell's number
+	public power: Power;
+	public readonly playerNum: PlayerNum; // player 1 is bottom-up, player 2 is top-down
+	public board: Board;
 	private readonly trailRepeatableId: RepeatableId;
 	
-	static readonly secondsPerTile: Seconds = 1.5;
-	static readonly velocity: PixelsPerSecond = 16 / Spell.secondsPerTile;
-	static tileTickRepeatableId: RepeatableId | null = null;
-	static lastTileTickTime: Time = 0;
+	private static readonly secondsPerTile: Seconds = 1.5;
+	private static readonly velocity: PixelsPerSecond = 16 / Spell.secondsPerTile;
+	private static tileTickRepeatableId: RepeatableId | null = null;
+	private static lastTileTickTime: Time = 0;
 	
-	constructor(x: Pixels, y: Pixels, lane: Lane, tier: Tier, playerNum: PlayerNum, power: Power = "none", board: Board) {
+	public constructor(x: Pixels, y: Pixels, lane: Lane, tier: Tier, playerNum: PlayerNum, power: Power = "none", board: Board) {
 		super(x, y, 16, 16, `/src/game/main/sprites/spells/spell-player${playerNum}-tier${tier}.png`);
 		this.lane = lane;
 		this.tier = tier;
@@ -34,34 +34,34 @@ export default class Spell extends GameObject {
 	
 	
 	// call once to sync
-	static syncTiles(): void {
+	public static syncTiles(): void {
 		Game.removeRepeatable(Spell.tileTickRepeatableId);
 		Spell.tileTickRepeatableId = Game.addRepeatable(() => {
 			Spell.lastTileTickTime = Date.now();
 		}, Spell.velocity / 16);
 	}
 	
-	static onTileTick(): boolean {
+	private static onTileTick(): boolean {
 		return Game.justHappened(Spell.lastTileTickTime);
 	}
 
 
-	static fluxCost(tier: Tier, power: Power): Flux {
+	public static fluxCost(tier: Tier, power: Power): Flux {
 		return tier * (power === "none"? 1 : 2);
 	}
 	
 	// returns true if this kills collider
-	kills(other: Spell): boolean {
+	private kills(other: Spell): boolean {
 		return other.playerNum !== this.playerNum && {
 			1: [4], 2: [1], 3: [2, 1], 4: [3, 2]            // map of which spells beat who
 		}[this.tier].includes(other.tier);
 	}
 	
-	collidedWithEnemy(x?: number, y?: number): boolean {
+	private collidedWithEnemy(x?: number, y?: number): boolean {
 		return this.getCollisionsWithType(Spell, x, y).some(collider => this.playerNum !== collider.playerNum);
 	}
 	
-	collidedWithAlly(x?: number, y?: number): boolean {
+	public collidedWithAlly(x?: number, y?: number): boolean {
 		return this.getCollisionsWithType(Spell, x, y).some(collider => this.playerNum === collider.playerNum);
 	}
 	
@@ -108,7 +108,7 @@ export default class Spell extends GameObject {
 	}
 
 
-	handleCollisions(): void {
+	private handleCollisions(): void {
 		const colliders: Spell[] = this.getCollisionsWithType(Spell);
 		colliders.forEach(collider => {
 			if(this.kills(collider))
@@ -117,7 +117,7 @@ export default class Spell extends GameObject {
 	}
 
 	
-	step(): void {
+	public step(): void {
 		if(this.power !== "none")
 			this[this.power]();
 
@@ -143,9 +143,14 @@ export default class Spell extends GameObject {
 	}
 	
 	
-	destroy(): void {
+	public destroy(): void {
 		super.destroy();
 		Game.removeRepeatable(this.trailRepeatableId);
+	}
+	
+	public static cleanupRepeatables(): void {
+		Game.removeRepeatable(Spell.tileTickRepeatableId);
+		Spell.tileTickRepeatableId = null
 	}
 	
 }
