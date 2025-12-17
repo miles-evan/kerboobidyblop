@@ -3,7 +3,7 @@ import Game from "./Game.ts";
 
 export default abstract class GameObject {
 	
-	private static nextId: number = 0;
+	public static nextId: number = 0;
 	private readonly id: number;
 	protected _object: HTMLDivElement;
 	private readonly includeInGameState: boolean;
@@ -73,7 +73,7 @@ export default abstract class GameObject {
 	
 	
 	// updates things like position and sprite
-	update(): void {
+	public update(): void {
 		this.x += (this.xVelocity / 1000) * Game.deltaTime;
 		this.y += (this.yVelocity / 1000) * Game.deltaTime;
 		
@@ -91,83 +91,83 @@ export default abstract class GameObject {
 	}
 	
 	
-	get x(): Pixels {
+	public get x(): Pixels {
 		return this.left + this.originX;
 	}
-	set x(x: Pixels) {
+	public set x(x: Pixels) {
 		this.left = x - this.originX;
 	}
 	
-	get y(): Pixels {
+	public get y(): Pixels {
 		return this.top + this.originY;
 	}
-	set y(y: Pixels) {
+	public set y(y: Pixels) {
 		this.top = y - this.originY;
 	}
 	
-	get right(): Pixels {
+	public get right(): Pixels {
 		return this.left + this.width;
 	}
-	set right(right: Pixels) {
+	public set right(right: Pixels) {
 		this.left = right - this.width;
 	}
 	
-	get bottom(): Pixels {
+	public get bottom(): Pixels {
 		return this.top + this.height;
 	}
-	set bottom(bottom: Pixels) {
+	public set bottom(bottom: Pixels) {
 		this.top = bottom - this.height;
 	}
 	
-	get middleX(): Pixels {
+	public get middleX(): Pixels {
 		return (this.left + this.right) / 2;
 	}
-	set middleX(middleX: Pixels) {
+	public set middleX(middleX: Pixels) {
 		this.left = middleX - this.width / 2;
 	}
 	
-	get middleY(): Pixels {
+	public get middleY(): Pixels {
 		return (this.top + this.bottom) / 2;
 	}
-	set middleY(middleY: Pixels) {
+	public set middleY(middleY: Pixels) {
 		this.top = middleY - this.height / 2;
 	}
 	
-	get width(): Pixels {
+	public get width(): Pixels {
 		return this.#width;
 	}
-	set width(width: Pixels) {
+	public set width(width: Pixels) {
 		this._hitboxLeft = this._hitboxLeft * width / this.width;
 		this._hitboxRight = this._hitboxRight * width / this.width;
 		this.#width = width;
 	}
 	
-	get height(): Pixels {
+	public get height(): Pixels {
 		return this.#height;
 	}
-	set height(height: Pixels) {
+	public set height(height: Pixels) {
 		this._hitboxTop = this._hitboxTop * height / this.height;
 		this._hitboxBottom = this._hitboxBottom * height / this.height;
 		this.#height = height;
 	}
 	
 	
-	get speed(): PixelsPerSecond {
+	public get speed(): PixelsPerSecond {
 		return Math.sqrt(this.xVelocity ** 2 + this.yVelocity ** 2);
 	}
-	set speed(speed: PixelsPerSecond) {
+	public set speed(speed: PixelsPerSecond) {
 		const angle: Degrees = this.velocityAngle;
 		this.xVelocity = speed * Math.cos(angle);
 		this.yVelocity = speed * Math.sin(angle);
 	}
 	
-	get velocityAngle(): Degrees {
+	public get velocityAngle(): Degrees {
 		if(this.xVelocity === 0 && this.yVelocity === 0)
 			return 0; // TODO is this really how we want that to work?
 		const radians: Radians = Math.atan2(this.yVelocity, this.xVelocity);
 		return (180 / Math.PI) * radians;
 	}
-	set velocityAngle(angle: Degrees) {
+	public set velocityAngle(angle: Degrees) {
 		const radians: Radians = (Math.PI / 180) * angle;
 		const speed: PixelsPerSecond = this.speed;
 		this.xVelocity = speed * Math.cos(radians);
@@ -175,54 +175,54 @@ export default abstract class GameObject {
 	}
 	
 	
-	setHitbox(hitboxWidth: Pixels = this.width, hitboxHeight: Pixels = this.height): void  {
+	public setHitbox(hitboxWidth: Pixels = this.width, hitboxHeight: Pixels = this.height): void  {
 		this._hitboxLeft = this.width/2 - hitboxWidth/2;
 		this._hitboxTop = this.height/2 - hitboxHeight/2;
 		this._hitboxRight = this._hitboxLeft + hitboxWidth;
 		this._hitboxBottom = this._hitboxTop + hitboxHeight;
 	}
 	
-	get hitboxLeft(): Pixels {
+	public get hitboxLeft(): Pixels {
 		return this.left + this._hitboxLeft;
 	}
 	
-	get hitboxTop(): Pixels {
+	public get hitboxTop(): Pixels {
 		return this.top + this._hitboxTop;
 	}
 	
-	get hitboxRight(): Pixels {
+	public get hitboxRight(): Pixels {
 		return this.left + this._hitboxRight;
 	}
 	
-	get hitboxBottom(): Pixels {
+	public get hitboxBottom(): Pixels {
 		return this.top + this._hitboxBottom;
 	}
 	
 	
-	get relativeMouseX(): Pixels {
+	public get relativeMouseX(): Pixels {
 		return Game.mouseX - this.x;
 	}
 	
-	get relativeMouseY(): Pixels {
+	public get relativeMouseY(): Pixels {
 		return Game.mouseY - this.x;
 	}
 	
 	
-	get mouseHovered(): boolean {
+	public get mouseHovered(): boolean {
 		return Game.mouseX > this.left && Game.mouseX < this.right
 			&& Game.mouseY > this.top && Game.mouseY < this.bottom;
 	}
 	
 	
-	get sprite(): string | null {
+	public get sprite(): string | null {
 		return this.#sprite;
 	}
-	set sprite(sprite: string | null) {
+	public set sprite(sprite: string | null) {
 		this.#sprite = sprite;
 		this.#spriteChanged = true;
 	}
 	
-	set animatedSprite(spriteImages: string[]) {
+	public set animatedSprite(spriteImages: string[]) {
 		if(spriteImages.length === 0)
 			throw new Error("can't set animation without sprites");
 		this.#spriteImages = spriteImages;
@@ -236,18 +236,18 @@ export default abstract class GameObject {
 		}, this.imageSpeed);
 	}
 	
-	get imageIndex() {
+	public get imageIndex() {
 		return this.#imageIndex;
 	}
-	set imageIndex(imageIndex: number) {
+	public set imageIndex(imageIndex: number) {
 		this.#imageIndex = imageIndex;
 		this.sprite = this.#spriteImages![imageIndex]!;
 	}
 	
-	get imageSpeed() {
+	public get imageSpeed() {
 		return this.#imageSpeed;
 	}
-	set imageSpeed(imageSpeed: Hertz) {
+	public set imageSpeed(imageSpeed: Hertz) {
 		this.#imageSpeed = imageSpeed;
 		if(!this.animationRepeatableId)
 			return;
@@ -261,15 +261,15 @@ export default abstract class GameObject {
 	
 	
 	// higher depth = further into the screen (further behind)
-	get depth(): number {
+	public get depth(): number {
 		return -Number(this._object.style.zIndex);
 	}
-	set depth(depth: number) {
+	public set depth(depth: number) {
 		this._object.style.zIndex = String(-depth);
 	}
 	
 	
-	collidedWith(other: GameObject): boolean {
+	public collidedWith(other: GameObject): boolean {
 		return this.hitboxRight > other.hitboxLeft
 			&& this.hitboxLeft < other.hitboxRight
 			&& this.hitboxBottom > other.hitboxTop
@@ -277,15 +277,15 @@ export default abstract class GameObject {
 	}
 	
 	
-	collidedWithType(type: Constructor<GameObject>, x?: Pixels, y?: Pixels): boolean {
+	public collidedWithType(type: Constructor<GameObject>, x?: Pixels, y?: Pixels): boolean {
 		return Game.objectCollidedWithType(this, type, x, y);
 	}
-	getCollisionsWithType<T extends GameObject>(type: Constructor<T>, x?: Pixels, y?: Pixels): T[] {
+	public getCollisionsWithType<T extends GameObject>(type: Constructor<T>, x?: Pixels, y?: Pixels): T[] {
 		return Game.getObjectsCollisionsWithType(this, type, x, y);
 	}
 	
 	
-	withTempPosition<T>(x: Pixels | undefined, y: Pixels | undefined, fn: (...args: any[]) => T): T {
+	public withTempPosition<T>(x: Pixels | undefined, y: Pixels | undefined, fn: (...args: any[]) => T): T {
 		const [originalX, originalY] = [this.x, this.y];
 		if(x) this.x = x;
 		if(y) this.y = y;
@@ -298,13 +298,13 @@ export default abstract class GameObject {
 	}
 	
 	
-	destroy(): void {
+	public destroy(): void {
 		this._object.remove();
 		Game._popGameObject(this);
 		Game.removeRepeatable(this.animationRepeatableId);
 	}
 	
 	
-	abstract step(): void;
+	public abstract step(): void;
 	
 }

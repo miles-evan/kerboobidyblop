@@ -2,17 +2,17 @@ import GameObject from "./GameObject.ts";
 
 
 export default class Game {
-	static _gameObjects: GameObject[] = [];
-	static instanceCount: number = 0;
-	static _instanceCounts: Record<string, number> = {};
-	static maxFrameRate: FramesPerSecond = 60;
-	static isRunning: boolean = false;
-	static _screen: HTMLElement | null;
-	static screenWidth: Pixels;
-	static screenHeight: Pixels;
-	static mouseX: Pixels;
-	static mouseY: Pixels;
-	static lockPositionsToVirtualPixels: boolean = false;
+	public static _gameObjects: GameObject[] = [];
+	public static instanceCount: number = 0;
+	public static _instanceCounts: Record<string, number> = {};
+	public static maxFrameRate: FramesPerSecond = 60;
+	public static isRunning: boolean = false;
+	public static _screen: HTMLElement | null;
+	public static screenWidth: Pixels;
+	public static screenHeight: Pixels;
+	public static mouseX: Pixels;
+	public static mouseY: Pixels;
+	public static lockPositionsToVirtualPixels: boolean = false;
 	private static keysDown: Record<Key, Time> = {};
 	private static lastFrameTimeStamp: Time = 0;
 	private static currentFrameTimeStamp: Time = 0;
@@ -23,12 +23,14 @@ export default class Game {
 	private static onTouchEnd: (e: TouchEvent) => void;
 	private static onMouseMove: (e: MouseEvent) => void;
 	static #frameCount: number = 0;
-	static globalSteps: AnyFunction[] = [];
-	static #timeStart: Time = 0;
+	public static globalSteps: AnyFunction[] = [];
+	private static timeStart: Time = 0;
 	private static preloadedImages: Record<string, HTMLImageElement> = {};
+	public static _repeatables: Record<RepeatableId, Repeatable> = {}
+	private static nextRepeatableId: RepeatableId = 0;
 	
 	
-	static init(screen: HTMLElement): boolean {
+	public static init(screen: HTMLElement): boolean {
 		if(Game._screen) return false;
 		
 		Game._screen = screen;
@@ -67,7 +69,8 @@ export default class Game {
 		return true;
 	}
 	
-	static destroy(): boolean {
+	// destroys all objects and cleans things up
+	public static destroy(): boolean {
 		Game.stop();
 		if(!Game._screen) return false;
 		window.removeEventListener("keydown", Game.onKeyDown);
@@ -84,31 +87,30 @@ export default class Game {
 	}
 	
 	
-	static _appendGameObject(gameObject: GameObject): void {
+	public static _appendGameObject(gameObject: GameObject): void {
 		Game.instanceCount ++;
 		Game._instanceCounts[gameObject.constructor.name] =
 			1 + (Game._instanceCounts[gameObject.constructor.name] ?? 0);
 		Game._gameObjects.push(gameObject);
 	}
 	
-	static _popGameObject(gameObject: GameObject): void {
+	public static _popGameObject(gameObject: GameObject): void {
 		Game.instanceCount --;
 		Game._instanceCounts[gameObject.constructor.name] =
 			-1 + (Game._instanceCounts[gameObject.constructor.name] ?? 0);
-		gameObject._object.remove();
 		Game._gameObjects = Game._gameObjects.filter(element => element !== gameObject);
 	}
 	
 	
-	static start(): boolean {
+	public static start(): boolean {
 		if(Game.isRunning) return false;
 		Game.isRunning = true;
-		Game.#timeStart = Date.now();
+		Game.timeStart = Date.now();
 		Game.doSteps();
 		return true;
 	}
 	
-	static stop(): void {
+	public static stop(): void {
 		Game.isRunning = false;
 		if(Game.timeoutId) {
 			clearTimeout(Game.timeoutId);
@@ -117,7 +119,7 @@ export default class Game {
 	}
 	
 	
-	static objectCollidedWithType(
+	public static objectCollidedWithType(
 		gameObject: GameObject, type: Constructor<GameObject>, x?: Pixels, y?: Pixels
 	): boolean {
 		
@@ -129,7 +131,7 @@ export default class Game {
 		})
 	}
 	
-	static getObjectsCollisionsWithType<T extends GameObject>(
+	public static getObjectsCollisionsWithType<T extends GameObject>(
 		gameObject: GameObject, type: Constructor<T>, x?: Pixels, y?: Pixels
 	): T[] {
 		
@@ -146,11 +148,11 @@ export default class Game {
 	}
 	
 	
-	static isKeyDown(key: Key): boolean {
+	public static isKeyDown(key: Key): boolean {
 		return key in Game.keysDown;
 	}
 	
-	static isKeyPressed(key: Key): boolean {
+	public static isKeyPressed(key: Key): boolean {
 		const timePressed: Time | undefined = Game.keysDown[key];
 		if(timePressed === undefined)
 			return false;
@@ -158,7 +160,7 @@ export default class Game {
 	}
 	
 	
-	static get virtualScreenSizeMultiplier(): number {
+	public static get virtualScreenSizeMultiplier(): number {
 		if(!Game._screen)
 			throw new Error("Must initialize screen");
 		return Game._screen.clientHeight / Game.screenHeight;
@@ -166,7 +168,7 @@ export default class Game {
 	
 	
 	// milliseconds since last frame
-	static get deltaTime(): Milliseconds {
+	public static get deltaTime(): Milliseconds {
 		return Game.lastFrameTimeStamp?
 			Game.currentFrameTimeStamp - Game.lastFrameTimeStamp
 			: 1000 / Game.maxFrameRate;
@@ -178,29 +180,28 @@ export default class Game {
 	}
 	
 	
-	// in milliseconds
-	static get timeSinceStart(): Milliseconds {
-		return Date.now() - Game.#timeStart;
+	public static get timeSinceStart(): Milliseconds {
+		return Date.now() - Game.timeStart;
 	}
 	
 	
-	// returns whether a time occured between the last frame and current frame
-	static justHappened(time: Time): boolean {
+	// returns whether a time occurred between the last frame and current frame
+	public static justHappened(time: Time): boolean {
 		return time >= Game.lastFrameTimeStamp && time <= Game.currentFrameTimeStamp;
 	}
 	
 	
-	static get frameCount(): number {
+	public static get frameCount(): number {
 		return Game.#frameCount;
 	}
 	
 	
-	static getInstanceCount<T extends GameObject>(type: Constructor<T>): number {
+	public static getInstanceCount<T extends GameObject>(type: Constructor<T>): number {
 		return Game._instanceCounts[type.name] ?? 0;
 	}
 	
 	
-	static async preloadImage(url: string) {
+	public static async preloadImage(url: string) {
 		return new Promise<void>(resolve => {
 			if(url in Game.preloadedImages) {
 				resolve();
@@ -218,15 +219,13 @@ export default class Game {
 	
 	// repeatables are functions that get called at a set rate like 5 times per second
 	// use this instead of setInterval because this will time more accurately alongside the game's framerate
-	static _repeatables: Record<RepeatableId, Repeatable> = {}
-	private static nextRepeatableId: RepeatableId = 0;
-	static addRepeatable(fn: AnyFunction, timesPerSecond: Hertz): RepeatableId {
+	public static addRepeatable(fn: AnyFunction, timesPerSecond: Hertz): RepeatableId {
 		Game._repeatables[Game.nextRepeatableId] = {
 			fn, timesPerSecond, timeOfLastFrameIdeally: Date.now(),
 		};
 		return Game.nextRepeatableId ++;
 	}
-	static removeRepeatable(id: RepeatableId | null): void {
+	public static removeRepeatable(id: RepeatableId | null): void {
 		if(id !== null) delete Game._repeatables[id];
 	}
 	private static runRepeatables(): void {
@@ -241,6 +240,16 @@ export default class Game {
 					repeatable.timeOfLastFrameIdeally = now;
 			}
 		});
+	}
+	
+	
+	public static getGameState(): object {
+		return {
+			_gameObjects: Game._gameObjects,
+			instanceCount: Game.instanceCount,
+			_instanceCounts: Game._instanceCounts,
+			frameCount: Game.frameCount,
+		};
 	}
 	
 	
