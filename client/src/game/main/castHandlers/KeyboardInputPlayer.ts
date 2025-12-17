@@ -2,6 +2,7 @@ import Player from "./Player.ts";
 import Game from "../../engine/Game.ts";
 import Logger from "../objects/Logger.ts";
 import type Fluxometer from "../objects/Fluxometer.ts";
+import type HealthMeter from "../objects/HealthMeter.ts";
 
 
 export default class KeyboardInputPlayer extends Player {
@@ -12,8 +13,8 @@ export default class KeyboardInputPlayer extends Player {
 	private readonly expireDuration: number = 1000;
 
 	
-	constructor(fluxometer: Fluxometer) {
-		super(fluxometer);
+	constructor(fluxometer: Fluxometer, healthMeter: HealthMeter) {
+		super(fluxometer, healthMeter);
 		new Logger(5, 10, () => this.nextTier + " " + this.nextPower);
 	}
 	
