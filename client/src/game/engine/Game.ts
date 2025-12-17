@@ -243,13 +243,32 @@ export default class Game {
 	}
 	
 	
-	public static getGameState(): object {
-		return {
+	public static getSnapshot(): object {
+		let snapShot: AppendableObject = {
+			timeOfSnapShot: Date.now(),
 			_gameObjects: Game._gameObjects,
 			instanceCount: Game.instanceCount,
 			_instanceCounts: Game._instanceCounts,
 			frameCount: Game.frameCount,
+			lastFrameTimeStamp: Game.lastFrameTimeStamp,
+			currentFrameTimeStamp: Game.currentFrameTimeStamp,
+			timeStart: Game.timeStart,
+			nextRepeatableId: Game.nextRepeatableId,
 		};
+		
+		// copy
+		snapShot = JSON.parse(JSON.stringify(snapShot));
+		
+		// attach functions because they can't be serialized
+		snapShot.globalSteps = [...Game.globalSteps];
+		snapShot.repeatables = { ...Game._repeatables };
+		
+		return snapShot;
+	}
+	
+	
+	public static loadGameState(gameState: object): void {
+		// TODO
 	}
 	
 	

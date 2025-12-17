@@ -10,6 +10,7 @@ declare global {
 		originY?: number,
 		includeInGameState?: boolean,
 	}
+	type AppendableObject = { [key: string]: any };
 	type Constructor<T> = abstract new (...args: any[]) => T;
 	type Key = KeyboardEvent["key"] | "touch";
 	type AnyFunction = (...args: any[]) => any;
