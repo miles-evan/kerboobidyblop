@@ -6,8 +6,8 @@ import type Player from "../castHandlers/Player.ts";
 import Endzone from "./Endzone.ts";
 
 export default class Board extends GameObject {
-	public readonly player1: Player;
-	public readonly player2: Player;
+	private readonly player1: Player;
+	private readonly player2: Player;
 	public topLeftTileX: number;
 	public topLeftTileY: number;
 	
@@ -31,7 +31,7 @@ export default class Board extends GameObject {
 	}
 	
 	// validate flux and collision and spawn spell
-	public initiatePlayerCast(playerNum: PlayerNum): void {
+	private initiatePlayerCast(playerNum: PlayerNum): void {
 		const player: Player = playerNum === 1? this.player1 : this.player2;
 		const rank: Rank = playerNum === 1? 0 : 9;
 		const cast: [Tier, Power, Lane] | null = player.tryCast();

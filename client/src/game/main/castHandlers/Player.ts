@@ -11,7 +11,7 @@ export default abstract class Player {
 	public flux: Flux = 0;
 	private readonly fluxometer: Fluxometer | null;
 	private readonly healthMeter: HealthMeter;
-	public static readonly fluxPerSecond: number = 0.5;
+	private static readonly fluxPerSecond: number = 0.5;
 	
 	protected constructor(fluxometer: Fluxometer | null, healthMeter: HealthMeter) {
 		this.fluxometer = fluxometer;

@@ -3,35 +3,41 @@ import Game from "./Game.ts";
 
 export default abstract class GameObject {
 	
-	_object: HTMLDivElement;
-	left: Pixels = 0;
-	top: Pixels = 0;
+	private static nextId: number = 0;
+	private readonly id: number;
+	protected _object: HTMLDivElement;
+	private readonly includeInGameState: boolean;
+	public left: Pixels = 0;
+	public top: Pixels = 0;
 	#width: Pixels = 0;
 	#height: Pixels = 0;
-	rotation: Degrees = 0;
-	xVelocity: PixelsPerSecond = 0;
-	yVelocity: PixelsPerSecond = 0;
-	_hitboxLeft: Pixels = 0;
-	_hitboxTop: Pixels = 0;
-	_hitboxRight: Pixels = 0;
-	_hitboxBottom: Pixels = 0;
-	originX: Pixels;
-	originY: Pixels;
+	public rotation: Degrees = 0;
+	public xVelocity: PixelsPerSecond = 0;
+	public yVelocity: PixelsPerSecond = 0;
+	public _hitboxLeft: Pixels = 0;
+	public _hitboxTop: Pixels = 0;
+	public _hitboxRight: Pixels = 0;
+	public _hitboxBottom: Pixels = 0;
+	public originX: Pixels;
+	public originY: Pixels;
 	#sprite: string | null = null;
 	#spriteChanged: boolean = false;
 	#spriteImages: string[] | null = null;
 	#imageSpeed: Hertz = 1;
 	private animationRepeatableId: RepeatableId | null = null;
 	#imageIndex: number = 0;
-	opacity: number = 1;
-	onClick: AnyFunction | null = null;
-	onRightClick: AnyFunction | null = null;
-	onMiddleClick: AnyFunction | null = null;
+	public opacity: number = 1;
+	public onClick: AnyFunction | null = null;
+	public onRightClick: AnyFunction | null = null;
+	public onMiddleClick: AnyFunction | null = null;
 	
 	protected constructor(
 		x: Pixels = 0, y: Pixels = 0, width: Pixels = 0, height: Pixels = 0, sprite: string = "",
-		{ hitboxWidth, hitboxHeight, originX=0, originY=0 }: ObjectOptions = {}
+		{ hitboxWidth, hitboxHeight, originX=0, originY=0, includeInGameState=true }: ObjectOptions = {}
 	) {
+		this.includeInGameState = includeInGameState;
+		this.id = includeInGameState? GameObject.nextId++ : -1;
+		
 		this._object = document.createElement("div");
 		this._object.style.position = "absolute"
 		this._object.style.backgroundRepeat = "no-repeat"

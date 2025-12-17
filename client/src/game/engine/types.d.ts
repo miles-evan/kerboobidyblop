@@ -7,7 +7,8 @@ declare global {
 		hitboxWidth?: number,
 		hitboxHeight?: number,
 		originX?: number,
-		originY?: number
+		originY?: number,
+		includeInGameState?: boolean,
 	}
 	type Constructor<T> = abstract new (...args: any[]) => T;
 	type Key = KeyboardEvent["key"] | "touch";

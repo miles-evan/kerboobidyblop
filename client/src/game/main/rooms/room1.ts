@@ -17,6 +17,7 @@ export default function room1() {
 		new CastPadPlayer(
 			new HealthMeter(100, Game.screenHeight - 16),
 			new Fluxometer(),
+			130, 75,
 		),
 		new RandomBot(
 			new HealthMeter(100, 16),
