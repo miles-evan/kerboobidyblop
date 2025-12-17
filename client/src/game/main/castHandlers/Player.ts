@@ -1,25 +1,35 @@
 import type Fluxometer from "../objects/Fluxometer.ts";
 import Game from "../../engine/Game.ts";
+import type HealthMeter from "../objects/HealthMeter.ts";
 
 
+// holds player data
+// subclasses implement a way to cast spells, like user input or bots
 export default abstract class Player {
 	
-	health: number = 100;
-	flux: Flux = 0;
+	protected health: number = 9;
+	public flux: Flux = 0;
 	private readonly fluxometer: Fluxometer | null;
-	static readonly fluxPerSecond: number = 0.5;
+	private readonly healthMeter: HealthMeter;
+	public static readonly fluxPerSecond: number = 0.5;
 	
-	protected constructor(fluxometer: Fluxometer | null) {
+	protected constructor(fluxometer: Fluxometer | null, healthMeter: HealthMeter) {
 		this.fluxometer = fluxometer;
+		this.healthMeter = healthMeter;
 	}
 	
-	updateFlux(): void {
+	public updateFlux(): void {
 		this.flux = Math.min(10, this.flux + Player.fluxPerSecond * (Game.deltaTime / 1000));
 		if(this.fluxometer)
 			this.fluxometer.flux = this.flux;
 	}
 	
+	public hurt(damage: number): void {
+		this.health -= damage;
+		this.healthMeter.health = this.health;
+	}
+	
 	// attempt to cast (may reject due to flux or collision)
-	abstract tryCast(): [Tier, Power, Lane] | null;
+	public abstract tryCast(): [Tier, Power, Lane] | null;
 	
 }
