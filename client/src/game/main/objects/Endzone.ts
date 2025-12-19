@@ -1,16 +1,17 @@
 import GameObject from "../../engine/GameObject.ts";
 import Spell from "./Spell.ts";
+import type Player from "../castHandlers/Player.ts";
 
 
-// spells step into the endzone to do damage to their enemy
+// when spells collide with the endzone, they do damage to their enemy
 export default class Endzone extends GameObject {
 	
-	private readonly onZoneEntered: (sumOfTiers: number) => any;
+	private readonly player: Player;
 	
-	public constructor(x: Pixels, y: Pixels, onZoneEntered: (sumOfTiers: number) => any) {
+	public constructor(x: Pixels, y: Pixels, player: Player) {
 		super(x, y, 64, 16);
 		this.depth = -10;
-		this.onZoneEntered = onZoneEntered;
+		this.player = player;
 	}
 	
 	public step(): void {
@@ -20,7 +21,7 @@ export default class Endzone extends GameObject {
 			collider.destroy();
 			return sum + collider.tier;
 		}, 0);
-		this.onZoneEntered(damage);
+		this.player.hurt(damage);
 	}
 	
 }
