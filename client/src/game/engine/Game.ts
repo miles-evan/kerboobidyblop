@@ -1,7 +1,7 @@
 import GameObject from "./GameObject.ts";
-import SafeClosure from "./SafeClosure.ts";
-import GameState from "./GameState.ts";
+import SnapshotableClosure from "./SnapshotableClosure.ts";
 import Repeatable from "./Repeatable.ts";
+import GameState from "./GameState.ts";
 
 
 export default class Game {
@@ -218,7 +218,7 @@ export default class Game {
 	}
 	
 	
-	public static addRepeatable(fn: AnyFunction | SafeClosure, timesPerSecond: Hertz): RepeatableId {
+	public static addRepeatable(fn: AnyFunction | SnapshotableClosure, timesPerSecond: Hertz): RepeatableId {
 		const repeatable = new Repeatable(fn, timesPerSecond);
 		Game._repeatables[repeatable.id] = repeatable;
 		return repeatable.id;

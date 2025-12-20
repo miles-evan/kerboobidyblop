@@ -1,6 +1,5 @@
 import GameObject from "./GameObject.ts";
-import SafeClosure from "./SafeClosure.ts";
-import type GameState from "./GameState.ts";
+import type Snapshotable from "./Snapshotable.ts";
 
 export {};
 
@@ -15,7 +14,7 @@ declare global {
 	type AppendableObject = { [key: string]: any };
 	type Constructor<T> = abstract new (...args: any[]) => T;
 	type GameObjectClass = Constructor<GameObject>;
-	type GameStateClass = Constructor<GameState>;
+	type SnapshotableClass = Constructor<Snapshotable>;
 	type Key = KeyboardEvent["key"] | "touch";
 	type AnyFunction = (...args: any[]) => any;
 	type RepeatableId = number;

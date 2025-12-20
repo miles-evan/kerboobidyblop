@@ -1,9 +1,9 @@
 import Game from "./Game.ts";
-import SafeClosure from "./SafeClosure.ts";
-import GameState from "./GameState.ts";
+import SnapshotableClosure from "./SnapshotableClosure.ts";
+import Snapshotable from "./Snapshotable.ts";
 
 
-export default abstract class GameObject extends GameState {
+export default abstract class GameObject extends Snapshotable {
 	
 	protected _object: HTMLDivElement;
 	public left: Pixels = 0;
@@ -231,7 +231,7 @@ export default abstract class GameObject extends GameState {
 		this.animationRepeatableId = null;
 		
 		this.animationRepeatableId = Game.addRepeatable(
-			new SafeClosure(this, this.nextAnimationFrame),
+			new SnapshotableClosure(this, this.nextAnimationFrame),
 			this.imageSpeed
 		);
 	}

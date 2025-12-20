@@ -1,12 +1,12 @@
 import type Fluxometer from "../objects/Fluxometer.ts";
 import Game from "../../engine/Game.ts";
 import type HealthMeter from "../objects/HealthMeter.ts";
-import GameState from "../../engine/GameState.ts";
+import Snapshotable from "../../engine/Snapshotable.ts";
 
 
 // holds player data
 // subclasses implement a way to cast spells, like user input or bots
-export default abstract class Player extends GameState {
+export default abstract class Player extends Snapshotable {
 	
 	protected health: number = 9;
 	public flux: Flux = 0;

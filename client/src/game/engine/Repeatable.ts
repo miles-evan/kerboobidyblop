@@ -1,15 +1,16 @@
-import SafeClosure from "./SafeClosure.ts";
-import GameState from "./GameState.ts";
+import SnapshotableClosure from "./SnapshotableClosure.ts";
+import Snapshotable from "./Snapshotable.ts";
+
 
 // repeatables are functions that get called at a set rate like 5 times per second
 // use these instead of setInterval because this will time more accurately alongside the game's framerate
-// they can also be state-safe whereas intervals cannot
-export default class Repeatable extends GameState {
-	public fn: AnyFunction | SafeClosure; // if you want the repeatable to be state-safe, use SafeClosure
+// they can also be snapshotable whereas intervals cannot
+export default class Repeatable extends Snapshotable {
+	public fn: AnyFunction | SnapshotableClosure; // if you want the repeatable to be snapshotable, use SnapshotableClosure
 	public timesPerSecond: Hertz;
 	private timeOfLastFrameIdeally: Time;
 	
-	constructor(fn: AnyFunction | SafeClosure, timesPerSecond: Hertz) {
+	constructor(fn: AnyFunction | SnapshotableClosure, timesPerSecond: Hertz) {
 		super();
 		this.fn = fn;
 		this.timesPerSecond = timesPerSecond;
@@ -31,7 +32,7 @@ export default class Repeatable extends GameState {
 	}
 	
 	private runFunction() {
-		if(this.fn instanceof SafeClosure) this.fn.run();
+		if(this.fn instanceof SnapshotableClosure) this.fn.run();
 		else this.fn();
 	}
 }

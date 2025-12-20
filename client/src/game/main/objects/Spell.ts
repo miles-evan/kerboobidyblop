@@ -2,7 +2,7 @@ import GameObject from "../../engine/GameObject.ts";
 import Game from "../../engine/Game.ts";
 import SpellTrail from "./SpellTrail.ts";
 import type Board from "./Board.ts";
-import SafeClosure from "../../engine/SafeClosure.ts";
+import SnapshotableClosure from "../../engine/SnapshotableClosure.ts";
 
 
 export default class Spell extends GameObject {
@@ -27,7 +27,7 @@ export default class Spell extends GameObject {
 		this.power = power;
 		this.board = board;
 		
-		this.trailRepeatableId = Game.addRepeatable(new SafeClosure(this, this.spawnTrail), Spell.velocity / 2);
+		this.trailRepeatableId = Game.addRepeatable(new SnapshotableClosure(this, this.spawnTrail), Spell.velocity / 2);
 	}
 	
 	
@@ -35,7 +35,7 @@ export default class Spell extends GameObject {
 	public static syncTiles(): void {
 		Game.removeRepeatable(Spell.tileTickRepeatableId);
 		Spell.tileTickRepeatableId = Game.addRepeatable(
-			new SafeClosure(Spell, Spell.updateLastTileTickTime),
+			new SnapshotableClosure(Spell, Spell.updateLastTileTickTime),
 			Spell.velocity / 16
 		);
 	}
