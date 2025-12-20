@@ -1,5 +1,6 @@
 import GameObject from "./GameObject.ts";
 
+// state-safe closure
 // like a function, but serializable and re-linkable (important for multiplayer)
 export default class SafeClosure {
 	public obj: GameObject | GameObjectClass;

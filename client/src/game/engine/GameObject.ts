@@ -1,13 +1,11 @@
 import Game from "./Game.ts";
 import SafeClosure from "./SafeClosure.ts";
+import Shareable from "./Shareable.ts";
 
 
-export default abstract class GameObject {
+export default abstract class GameObject extends Shareable {
 	
-	// public static nextId: number = 0; TODO
-	// private readonly id: number; TODO
 	protected _object: HTMLDivElement;
-	// private readonly includeInGameState: boolean; TODO
 	public left: Pixels = 0;
 	public top: Pixels = 0;
 	#width: Pixels = 0;
@@ -34,10 +32,9 @@ export default abstract class GameObject {
 	
 	protected constructor(
 		x: Pixels = 0, y: Pixels = 0, width: Pixels = 0, height: Pixels = 0, sprite: string = "",
-		{ hitboxWidth, hitboxHeight, originX=0, originY=0, /* includeInGameState=true TODO */ }: ObjectOptions = {}
+		{ hitboxWidth, hitboxHeight, originX=0, originY=0 }: ObjectOptions = {}
 	) {
-		// this.includeInGameState = includeInGameState; TODO
-		// this.id = includeInGameState? GameObject.nextId++ : -1; TODO
+		super();
 		
 		this._object = document.createElement("div");
 		this._object.style.position = "absolute"
