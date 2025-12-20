@@ -12,6 +12,7 @@ declare global {
 	}
 	type AppendableObject = { [key: string]: any };
 	type Constructor<T> = abstract new (...args: any[]) => T;
+	type GameObjectClass = Constructor<GameObject>;
 	type Key = KeyboardEvent["key"] | "touch";
 	type AnyFunction = (...args: any[]) => any;
 	type RepeatableId = number;
@@ -26,7 +27,7 @@ declare global {
 	type Frames = number;
 	type FramesPerSecond = number;
 	type Repeatable = {
-		fn: AnyFunction,
+		fn: ClosureLike, // that way repeatables are serializable and re-linkable
 		timesPerSecond: Hertz,
 		timeOfLastFrameIdeally: Time,
 	}

@@ -1,4 +1,5 @@
 import GameObject from "./GameObject.ts";
+import type SafeClosure from "./SafeClosure.ts";
 
 
 export default class Game {
@@ -120,9 +121,8 @@ export default class Game {
 	
 	
 	public static objectCollidedWithType(
-		gameObject: GameObject, type: Constructor<GameObject>, x?: Pixels, y?: Pixels
+		gameObject: GameObject, type: GameObjectClass, x?: Pixels, y?: Pixels
 	): boolean {
-		
 		return gameObject.withTempPosition(x, y, () => {
 			return Game._gameObjects.some(other =>
 				other instanceof type
@@ -219,8 +219,9 @@ export default class Game {
 	
 	// repeatables are functions that get called at a set rate like 5 times per second
 	// use this instead of setInterval because this will time more accurately alongside the game's framerate
-	public static addRepeatable(fn: AnyFunction, timesPerSecond: Hertz): RepeatableId {
-		Game._repeatables[Game.nextRepeatableId] = {
+	// this is also serializable and re-linkable (important for multiplayer games)
+	public static addRepeatable(fn: SafeClosure, timesPerSecond: Hertz): RepeatableId {
+		Game. _repeatables[Game.nextRepeatableId] = {
 			fn, timesPerSecond, timeOfLastFrameIdeally: Date.now(),
 		};
 		return Game.nextRepeatableId ++;
@@ -233,7 +234,7 @@ export default class Game {
 			const now: Time = Date.now();
 			const period: Milliseconds = 1000 / repeatable.timesPerSecond;
 			if(now - repeatable.timeOfLastFrameIdeally >= period) {
-				repeatable.fn();
+				repeatable.fn.run();
 				repeatable.timeOfLastFrameIdeally += period;
 				// so you don't get too behind if low framerate:
 				if(now - repeatable.timeOfLastFrameIdeally > period)
@@ -260,16 +261,15 @@ export default class Game {
 		snapShot = JSON.parse(JSON.stringify(snapShot));
 		
 		// attach functions because they can't be serialized
-		snapShot.globalSteps = [...Game.globalSteps];
 		snapShot.repeatables = { ...Game._repeatables };
 		
 		return snapShot;
 	}
 	
 	
-	public static loadGameState(gameState: object): void {
-		// TODO
-	}
+	// public static loadGameState(gameState: object): void {
+	// 	// TODO
+	// }
 	
 	
 	private static doSteps(): void {

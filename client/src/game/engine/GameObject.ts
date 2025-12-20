@@ -1,12 +1,13 @@
 import Game from "./Game.ts";
+import SafeClosure from "./SafeClosure.ts";
 
 
 export default abstract class GameObject {
 	
-	public static nextId: number = 0;
-	private readonly id: number;
+	// public static nextId: number = 0; TODO
+	// private readonly id: number; TODO
 	protected _object: HTMLDivElement;
-	private readonly includeInGameState: boolean;
+	// private readonly includeInGameState: boolean; TODO
 	public left: Pixels = 0;
 	public top: Pixels = 0;
 	#width: Pixels = 0;
@@ -33,10 +34,10 @@ export default abstract class GameObject {
 	
 	protected constructor(
 		x: Pixels = 0, y: Pixels = 0, width: Pixels = 0, height: Pixels = 0, sprite: string = "",
-		{ hitboxWidth, hitboxHeight, originX=0, originY=0, includeInGameState=true }: ObjectOptions = {}
+		{ hitboxWidth, hitboxHeight, originX=0, originY=0, /* includeInGameState=true TODO */ }: ObjectOptions = {}
 	) {
-		this.includeInGameState = includeInGameState;
-		this.id = includeInGameState? GameObject.nextId++ : -1;
+		// this.includeInGameState = includeInGameState; TODO
+		// this.id = includeInGameState? GameObject.nextId++ : -1; TODO
 		
 		this._object = document.createElement("div");
 		this._object.style.position = "absolute"
@@ -225,15 +226,22 @@ export default abstract class GameObject {
 	public set animatedSprite(spriteImages: string[]) {
 		if(spriteImages.length === 0)
 			throw new Error("can't set animation without sprites");
+		
 		this.#spriteImages = spriteImages;
 		this.sprite = spriteImages[0]!;
+		
 		Game.removeRepeatable(this.animationRepeatableId);
 		this.animationRepeatableId = null;
-		this.animationRepeatableId = Game.addRepeatable(() => {
-			if(!this.#spriteImages)
-				throw new Error("sprite images for animation not set");
-			this.imageIndex = (this.imageIndex + 1) % this.#spriteImages.length;
-		}, this.imageSpeed);
+		
+		this.animationRepeatableId = Game.addRepeatable(
+			new SafeClosure(this, this.nextAnimationFrame),
+			this.imageSpeed
+		);
+	}
+	private nextAnimationFrame(): void {
+		if(!this.#spriteImages)
+			throw new Error("sprite images for animation not set");
+		this.imageIndex = (this.imageIndex + 1) % this.#spriteImages.length;
 	}
 	
 	public get imageIndex() {
@@ -277,7 +285,7 @@ export default abstract class GameObject {
 	}
 	
 	
-	public collidedWithType(type: Constructor<GameObject>, x?: Pixels, y?: Pixels): boolean {
+	public collidedWithType(type: GameObjectClass, x?: Pixels, y?: Pixels): boolean {
 		return Game.objectCollidedWithType(this, type, x, y);
 	}
 	public getCollisionsWithType<T extends GameObject>(type: Constructor<T>, x?: Pixels, y?: Pixels): T[] {

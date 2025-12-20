@@ -2,6 +2,7 @@ import GameObject from "../../engine/GameObject.ts";
 import Game from "../../engine/Game.ts";
 import SpellTrail from "./SpellTrail.ts";
 import type Board from "./Board.ts";
+import SafeClosure from "../../engine/SafeClosure.ts";
 
 
 export default class Spell extends GameObject {
@@ -26,19 +27,17 @@ export default class Spell extends GameObject {
 		this.power = power;
 		this.board = board;
 		
-		this.trailRepeatableId = Game.addRepeatable(() => {
-			if(this.yVelocity)
-				new SpellTrail(this.x, this.y, this.power)
-		}, Spell.velocity / 2);
+		this.trailRepeatableId = Game.addRepeatable(new SafeClosure(this, this.spawnTrail), Spell.velocity / 2);
 	}
 	
 	
 	// call once to sync
 	public static syncTiles(): void {
 		Game.removeRepeatable(Spell.tileTickRepeatableId);
-		Spell.tileTickRepeatableId = Game.addRepeatable(() => {
-			Spell.lastTileTickTime = Date.now();
-		}, Spell.velocity / 16);
+		Spell.tileTickRepeatableId = Game.addRepeatable(
+			new SafeClosure(Spell, Spell.updateLastTileTickTime),
+			Spell.velocity / 16
+		);
 	}
 	
 	private static onTileTick(): boolean {
@@ -48,6 +47,14 @@ export default class Spell extends GameObject {
 
 	public static fluxCost(tier: Tier, power: Power): Flux {
 		return tier * (power === "none"? 1 : 2);
+	}
+	
+	private spawnTrail(): void {
+		if(this.yVelocity) new SpellTrail(this.x, this.y, this.power);
+	}
+	
+	private static updateLastTileTickTime(): void {
+		Spell.lastTileTickTime = Date.now();
 	}
 	
 	// returns true if this kills collider
