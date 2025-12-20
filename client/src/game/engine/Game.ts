@@ -220,7 +220,7 @@ export default class Game {
 	// repeatables are functions that get called at a set rate like 5 times per second
 	// use this instead of setInterval because this will time more accurately alongside the game's framerate
 	// this is also serializable and re-linkable (important for multiplayer games)
-	public static addRepeatable(fn: SafeClosure, timesPerSecond: Hertz): RepeatableId {
+	public static addRepeatable(fn: AnyFunction | SafeClosure, timesPerSecond: Hertz): RepeatableId {
 		Game. _repeatables[Game.nextRepeatableId] = {
 			fn, timesPerSecond, timeOfLastFrameIdeally: Date.now(),
 		};

@@ -28,7 +28,7 @@ declare global {
 	type Frames = number;
 	type FramesPerSecond = number;
 	type Repeatable = {
-		fn: AnyFunction | SafeClosure, // that way repeatables are serializable and re-linkable
+		fn: AnyFunction | SafeClosure, // that way repeatables can be serializable and re-linkable
 		timesPerSecond: Hertz,
 		timeOfLastFrameIdeally: Time,
 	}
