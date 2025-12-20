@@ -2,7 +2,7 @@ import GameState from "./GameState.ts";
 
 // state-safe closure
 // like a function, but serializable and re-linkable (important for multiplayer)
-export default class SafeClosure {
+export default class SafeClosure extends GameState {
 	public readonly obj: GameState | GameStateClass;
 	public readonly methodName: string;
 	
@@ -10,6 +10,7 @@ export default class SafeClosure {
 	// (it takes the method instead of just the string, so that ts doesn't get mad that you aren't "using" the method ever)
 	// obj can be Constructor<GameObject> too so that it can use static functions
 	public constructor(obj: GameState | GameStateClass, method: AnyFunction) {
+		super();
 		this.obj = obj;
 		this.methodName = method.name;
 		if(!(method.name in obj))

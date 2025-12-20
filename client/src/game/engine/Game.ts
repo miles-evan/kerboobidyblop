@@ -1,12 +1,13 @@
 import GameObject from "./GameObject.ts";
 import SafeClosure from "./SafeClosure.ts";
 import GameState from "./GameState.ts";
+import Repeatable from "./Repeatable.ts";
 
 
 export default class Game {
 	public static _gameObjects: GameObject[] = [];
 	public static instanceCount: number = 0;
-	public static _instanceCounts: Record<string, number> = {};
+	public static _instanceCounts: Record<string, number> = {}; // type -> count
 	public static maxFrameRate: FramesPerSecond = 60;
 	public static isRunning: boolean = false;
 	public static _screen: HTMLElement | null;
@@ -28,8 +29,7 @@ export default class Game {
 	public static globalSteps: AnyFunction[] = [];
 	private static timeStart: Time = 0;
 	private static preloadedImages: Record<string, HTMLImageElement> = {};
-	public static _repeatables: Record<RepeatableId, Repeatable> = {}
-	private static nextRepeatableId: RepeatableId = 0;
+	public static _repeatables: Record<number, Repeatable> = {}; // id -> repeatable
 	
 	
 	public static init(screen: HTMLElement): boolean {
@@ -108,7 +108,7 @@ export default class Game {
 		if(Game.isRunning) return false;
 		Game.isRunning = true;
 		Game.timeStart = Date.now();
-		Game.doSteps();
+		Game.step();
 		return true;
 	}
 	
@@ -218,43 +218,36 @@ export default class Game {
 	}
 	
 	
-	// repeatables are functions that get called at a set rate like 5 times per second
-	// use this instead of setInterval because this will time more accurately alongside the game's framerate
-	// this is also serializable and re-linkable (important for multiplayer games)
 	public static addRepeatable(fn: AnyFunction | SafeClosure, timesPerSecond: Hertz): RepeatableId {
-		Game. _repeatables[Game.nextRepeatableId] = {
-			fn, timesPerSecond, timeOfLastFrameIdeally: Date.now(),
-		};
-		return Game.nextRepeatableId ++;
+		const repeatable = new Repeatable(fn, timesPerSecond);
+		Game._repeatables[repeatable.id] = repeatable;
+		return repeatable.id;
 	}
 	public static removeRepeatable(id: RepeatableId | null): void {
 		if(id !== null) delete Game._repeatables[id];
 	}
 	private static runRepeatables(): void {
 		for(const repeatable of Object.values(Game._repeatables)) {
-			const now: Time = Date.now();
-			const period: Milliseconds = 1000 / repeatable.timesPerSecond;
-			if(now - repeatable.timeOfLastFrameIdeally >= period) {
-				if(repeatable.fn instanceof SafeClosure) repeatable.fn.run(); else repeatable.fn();
-				repeatable.timeOfLastFrameIdeally += period;
-				// so you don't get too behind if low framerate:
-				if(now - repeatable.timeOfLastFrameIdeally > period)
-					repeatable.timeOfLastFrameIdeally = now;
-			}
+			repeatable.tryRun();
 		}
 	}
 	
 	
-	private static doSteps(): void {
+	private static step(): void {
 		Game.updateDeltaTime();
+		
 		Game.globalSteps.forEach(step => step());
+		
 		Game._gameObjects.forEach(gameObject => gameObject.step());
 		Game._gameObjects.forEach(gameObject => gameObject.update());
+		
 		Game.runRepeatables();
+		
 		if(Game.isRunning) {
 			const timeSinceFrameStart: Milliseconds = Date.now() - Game.currentFrameTimeStamp;
-			Game.timeoutId = setTimeout(Game.doSteps, Math.max(0, 1000 / Game.maxFrameRate - timeSinceFrameStart));
+			Game.timeoutId = setTimeout(Game.step, Math.max(0, 1000 / Game.maxFrameRate - timeSinceFrameStart));
 		}
+		
 		Game.#frameCount ++;
 	}
 }
