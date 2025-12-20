@@ -1,9 +1,9 @@
 import Game from "./Game.ts";
 import SafeClosure from "./SafeClosure.ts";
-import Shareable from "./Shareable.ts";
+import GameState from "./GameState.ts";
 
 
-export default abstract class GameObject extends Shareable {
+export default abstract class GameObject extends GameState {
 	
 	protected _object: HTMLDivElement;
 	public left: Pixels = 0;
@@ -304,6 +304,7 @@ export default abstract class GameObject extends Shareable {
 	
 	
 	public destroy(): void {
+		super.destroy();
 		this._object.remove();
 		Game._popGameObject(this);
 		Game.removeRepeatable(this.animationRepeatableId);

@@ -1,5 +1,6 @@
 import GameObject from "./GameObject.ts";
 import SafeClosure from "./SafeClosure.ts";
+import GameState from "./GameState.ts";
 
 
 export default class Game {
@@ -80,7 +81,7 @@ export default class Game {
 		Game._screen.removeEventListener("touchend", Game.onTouchEnd);
 		Game._screen.removeEventListener("mousemove", Game.onMouseMove);
 		Game._screen = null;
-		Game._gameObjects.forEach(gameObject => gameObject.destroy());
+		GameState.destroyAll();
 		Game._gameObjects = [];
 		Game._instanceCounts = {};
 		Game.instanceCount = 0;
@@ -242,34 +243,6 @@ export default class Game {
 			}
 		}
 	}
-	
-	
-	public static getSnapshot(): object {
-		let snapShot: AppendableObject = {
-			timeOfSnapShot: Date.now(),
-			_gameObjects: Game._gameObjects,
-			instanceCount: Game.instanceCount,
-			_instanceCounts: Game._instanceCounts,
-			frameCount: Game.frameCount,
-			lastFrameTimeStamp: Game.lastFrameTimeStamp,
-			currentFrameTimeStamp: Game.currentFrameTimeStamp,
-			timeStart: Game.timeStart,
-			nextRepeatableId: Game.nextRepeatableId,
-		};
-		
-		// copy
-		snapShot = JSON.parse(JSON.stringify(snapShot));
-		
-		// attach functions because they can't be serialized
-		snapShot.repeatables = { ...Game._repeatables };
-		
-		return snapShot;
-	}
-	
-	
-	// public static loadGameState(gameState: object): void {
-	// 	// TODO
-	// }
 	
 	
 	private static doSteps(): void {
