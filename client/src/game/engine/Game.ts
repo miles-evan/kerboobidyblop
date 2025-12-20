@@ -1,5 +1,5 @@
 import GameObject from "./GameObject.ts";
-import type SafeClosure from "./SafeClosure.ts";
+import SafeClosure from "./SafeClosure.ts";
 
 
 export default class Game {
@@ -230,17 +230,17 @@ export default class Game {
 		if(id !== null) delete Game._repeatables[id];
 	}
 	private static runRepeatables(): void {
-		Object.values(Game._repeatables).forEach(repeatable => {
+		for(const repeatable of Object.values(Game._repeatables)) {
 			const now: Time = Date.now();
 			const period: Milliseconds = 1000 / repeatable.timesPerSecond;
 			if(now - repeatable.timeOfLastFrameIdeally >= period) {
-				repeatable.fn.run();
+				if(repeatable.fn instanceof SafeClosure) repeatable.fn.run(); else repeatable.fn();
 				repeatable.timeOfLastFrameIdeally += period;
 				// so you don't get too behind if low framerate:
 				if(now - repeatable.timeOfLastFrameIdeally > period)
 					repeatable.timeOfLastFrameIdeally = now;
 			}
-		});
+		}
 	}
 	
 	

@@ -1,4 +1,5 @@
 import GameObject from "./GameObject.ts";
+import SafeClosure from "./SafeClosure.ts";
 
 export {};
 
@@ -27,7 +28,7 @@ declare global {
 	type Frames = number;
 	type FramesPerSecond = number;
 	type Repeatable = {
-		fn: ClosureLike, // that way repeatables are serializable and re-linkable
+		fn: AnyFunction | SafeClosure, // that way repeatables are serializable and re-linkable
 		timesPerSecond: Hertz,
 		timeOfLastFrameIdeally: Time,
 	}
