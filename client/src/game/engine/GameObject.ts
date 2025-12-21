@@ -5,7 +5,7 @@ import Snapshotable from "./Snapshotable.ts";
 
 export default abstract class GameObject extends Snapshotable {
 	
-	protected __object: HTMLDivElement;
+	public __object: HTMLDivElement;
 	public left: Pixels = 0;
 	public top: Pixels = 0;
 	private _width: Pixels = 0;
@@ -61,10 +61,6 @@ export default abstract class GameObject extends Snapshotable {
 			if(e.button === 1) this.onMiddleClick?.();
 			if(e.button === 2) this.onRightClick?.();
 		});
-		
-		if(!Game.__screen)
-			throw new Error("Must initialize screen");
-		Game.__screen.append(this.__object);
 		
 		Game._appendGameObject(this);
 	}

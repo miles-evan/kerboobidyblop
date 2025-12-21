@@ -11,7 +11,7 @@ export default class Game {
 	private static _instanceCounts: Record<string, number> = {}; // type -> count
 	public static maxFrameRate: FramesPerSecond = 60;
 	public static isRunning: boolean = false;
-	public static __screen: HTMLElement | null;
+	static #screen: HTMLElement | null;
 	public static screenWidth: Pixels;
 	public static screenHeight: Pixels;
 	public static mouseX: Pixels;
@@ -34,9 +34,9 @@ export default class Game {
 	
 	
 	public static init(screen: HTMLElement): boolean {
-		if(Game.__screen) return false;
+		if(Game.#screen) return false;
 		
-		Game.__screen = screen;
+		Game.#screen = screen;
 		Game.screenWidth = screen.clientWidth;
 		Game.screenHeight = screen.clientHeight;
 		screen.style.position = "relative";
@@ -75,13 +75,13 @@ export default class Game {
 	// destroys all objects and cleans things up
 	public static destroy(): boolean {
 		Game.stop();
-		if(!Game.__screen) return false;
+		if(!Game.#screen) return false;
 		window.removeEventListener("keydown", Game.#onKeyDown);
 		window.removeEventListener("keyup", Game.#onKeyUp);
-		Game.__screen.removeEventListener("touchstart", Game.#onTouchStart);
-		Game.__screen.removeEventListener("touchend", Game.#onTouchEnd);
-		Game.__screen.removeEventListener("mousemove", Game.#onMouseMove);
-		Game.__screen = null;
+		Game.#screen.removeEventListener("touchstart", Game.#onTouchStart);
+		Game.#screen.removeEventListener("touchend", Game.#onTouchEnd);
+		Game.#screen.removeEventListener("mousemove", Game.#onMouseMove);
+		Game.#screen = null;
 		GameState.destroyAllObjects();
 		Game.__gameObjects = [];
 		Game._instanceCounts = {};
@@ -95,6 +95,8 @@ export default class Game {
 		Game._instanceCounts[gameObject.constructor.name] =
 			1 + (Game._instanceCounts[gameObject.constructor.name] ?? 0);
 		Game.__gameObjects.push(gameObject);
+		if(!Game.#screen) throw new Error("Must initialize screen");
+		Game.#screen.append(gameObject.__object);
 	}
 	
 	public static _popGameObject(gameObject: GameObject): void {
@@ -163,9 +165,9 @@ export default class Game {
 	
 	
 	public static get virtualScreenSizeMultiplier(): number {
-		if(!Game.__screen)
+		if(!Game.#screen)
 			throw new Error("Must initialize screen");
-		return Game.__screen.clientHeight / Game.screenHeight;
+		return Game.#screen.clientHeight / Game.screenHeight;
 	}
 	
 	
