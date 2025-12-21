@@ -2,6 +2,7 @@ import GameObject from "./GameObject.ts";
 import SnapshotableClosure from "./SnapshotableClosure.ts";
 import Repeatable from "./Repeatable.ts";
 import GameState from "./GameState.ts";
+import SnapshotableTime from "./SnapshotableTime.ts";
 
 
 export default class Game {
@@ -17,9 +18,9 @@ export default class Game {
 	public static mouseX: Pixels;
 	public static mouseY: Pixels;
 	public static lockPositionsToVirtualPixels: boolean = false;
-	private static keysDown: Record<Key, Time> = {};
-	private static lastFrameTimeStamp: Time = 0;
-	private static currentFrameTimeStamp: Time = 0;
+	private static keysDown: Record<Key, SnapshotableTime> = {};
+	private static lastFrameTimeStamp: SnapshotableTime = new SnapshotableTime(0);
+	private static currentFrameTimeStamp: SnapshotableTime = new SnapshotableTime(0);
 	private static timeoutId: number | null = null;
 	static #onKeyDown: (e: KeyboardEvent) => void;
 	static #onKeyUp: (e: KeyboardEvent) => void;
@@ -28,7 +29,7 @@ export default class Game {
 	static #onMouseMove: (e: MouseEvent) => void;
 	private static _frameCount: number = 0;
 	public static globalSteps: Array<AnyFunction | SnapshotableClosure> = [];
-	private static timeStart: Time = 0;
+	private static timeStart: SnapshotableTime = new SnapshotableTime(0);
 	static #preloadedImages: Record<string, HTMLImageElement> = {};
 	public static _repeatables: Record<number, Repeatable> = {}; // id -> repeatable
 	
@@ -46,14 +47,14 @@ export default class Game {
 		
 		Game.#onKeyDown = (e: KeyboardEvent): void => {
 			if(!(e.key in Game.keysDown))
-				Game.keysDown[e.key as Key] = Date.now();
+				Game.keysDown[e.key as Key] = SnapshotableTime.now();
 		};
 		Game.#onKeyUp = (e: KeyboardEvent): void => {
 			delete Game.keysDown[e.key as Key];
 		};
 		Game.#onTouchStart = (): void => {
 			if(!("touch" in Game.keysDown))
-				Game.keysDown["touch"] = Date.now();
+				Game.keysDown["touch"] = SnapshotableTime.now();
 		};
 		Game.#onTouchEnd = (): void => {
 			delete Game.keysDown["touch"];
@@ -116,7 +117,7 @@ export default class Game {
 	public static start(): boolean {
 		if(Game.isRunning) return false;
 		Game.isRunning = true;
-		Game.timeStart = Date.now();
+		Game.timeStart = SnapshotableTime.now();
 		Game.step();
 		return true;
 	}
@@ -163,10 +164,8 @@ export default class Game {
 	}
 	
 	public static isKeyPressed(key: Key): boolean {
-		const timePressed: Time | undefined = Game.keysDown[key];
-		if(timePressed === undefined)
-			return false;
-		return Game.justHappened(timePressed);
+		const timePressed: SnapshotableTime | undefined = Game.keysDown[key];
+		return timePressed !== undefined && Game.justHappened(timePressed.value);
 	}
 	
 	
@@ -179,25 +178,25 @@ export default class Game {
 	
 	// milliseconds since last frame
 	public static get deltaTime(): Milliseconds {
-		return Game.lastFrameTimeStamp?
-			Game.currentFrameTimeStamp - Game.lastFrameTimeStamp
+		return Game.lastFrameTimeStamp.value !== 0?
+			Game.currentFrameTimeStamp.value - Game.lastFrameTimeStamp.value
 			: 1000 / Game.maxFrameRate;
 	}
 	
 	private static updateDeltaTime(): void {
 		Game.lastFrameTimeStamp = Game.currentFrameTimeStamp;
-		Game.currentFrameTimeStamp = Date.now();
+		Game.currentFrameTimeStamp = SnapshotableTime.now();
 	}
 	
 	
 	public static get timeSinceStart(): Milliseconds {
-		return Date.now() - Game.timeStart;
+		return Date.now() - Game.timeStart.value;
 	}
 	
 	
 	// returns whether a time occurred between the last frame and current frame
 	public static justHappened(time: Time): boolean {
-		return time >= Game.lastFrameTimeStamp && time <= Game.currentFrameTimeStamp;
+		return time >= Game.lastFrameTimeStamp.value && time <= Game.currentFrameTimeStamp.value;
 	}
 	
 	
@@ -253,7 +252,7 @@ export default class Game {
 		Game.runRepeatables();
 		
 		if(Game.isRunning) {
-			const timeSinceFrameStart: Milliseconds = Date.now() - Game.currentFrameTimeStamp;
+			const timeSinceFrameStart: Milliseconds = Date.now() - Game.currentFrameTimeStamp.value;
 			Game.timeoutId = setTimeout(Game.step, Math.max(0, 1000 / Game.maxFrameRate - timeSinceFrameStart));
 		}
 		

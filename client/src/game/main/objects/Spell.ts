@@ -3,6 +3,7 @@ import Game from "../../engine/Game.ts";
 import SpellTrail from "./SpellTrail.ts";
 import type Board from "./Board.ts";
 import SnapshotableClosure from "../../engine/SnapshotableClosure.ts";
+import SnapshotableTime from "../../engine/SnapshotableTime.ts";
 
 
 export default class Spell extends GameObject {
@@ -17,7 +18,7 @@ export default class Spell extends GameObject {
 	private static readonly secondsPerTile: Seconds = 1.5;
 	private static readonly velocity: PixelsPerSecond = 16 / Spell.secondsPerTile;
 	private static tileTickRepeatableId: RepeatableId | null = null;
-	private static lastTileTickTime: Time = 0;
+	private static lastTileTickTime: SnapshotableTime = new SnapshotableTime(0);
 	
 	public constructor(x: Pixels, y: Pixels, lane: Lane, tier: Tier, playerNum: PlayerNum, power: Power = "none", board: Board) {
 		super(x, y, 16, 16, `/src/game/main/sprites/spells/spell-player${playerNum}-tier${tier}.png`);
@@ -41,7 +42,7 @@ export default class Spell extends GameObject {
 	}
 	
 	private static onTileTick(): boolean {
-		return Game.justHappened(Spell.lastTileTickTime);
+		return Game.justHappened(Spell.lastTileTickTime.value);
 	}
 
 
@@ -54,7 +55,7 @@ export default class Spell extends GameObject {
 	}
 	
 	private static updateLastTileTickTime(): void {
-		Spell.lastTileTickTime = Date.now();
+		Spell.lastTileTickTime = SnapshotableTime.now();
 	}
 	
 	// returns true if this kills collider

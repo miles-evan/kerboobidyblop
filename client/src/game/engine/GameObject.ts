@@ -56,7 +56,7 @@ export default abstract class GameObject extends Snapshotable {
 		
 		this.setHitbox(hitboxWidth, hitboxHeight);
 		
-		this.__object.addEventListener("mousedown", this.onMouseDown);
+		this.__object.addEventListener("mousedown", e => this.onMouseDown(e));
 		
 		Game.__appendGameObject(this);
 	}

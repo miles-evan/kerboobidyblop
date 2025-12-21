@@ -10,6 +10,10 @@ export default class SnapshotableTime extends Snapshotable {
 		this.value = time;
 	}
 	
+	public static now(): SnapshotableTime {
+		return new SnapshotableTime(Date.now());
+	}
+	
 	public snapshot(): Like<Snapshotable> {
 		const result = super.snapshot() as SnapshotableTime;
 		result.value -= Date.now();
