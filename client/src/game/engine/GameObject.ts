@@ -5,26 +5,26 @@ import Snapshotable from "./Snapshotable.ts";
 
 export default abstract class GameObject extends Snapshotable {
 	
-	protected _object: HTMLDivElement;
+	protected __object: HTMLDivElement; // recommended not to use this unless you have to
 	public left: Pixels = 0;
 	public top: Pixels = 0;
-	#width: Pixels = 0;
-	#height: Pixels = 0;
+	private _width: Pixels = 0;
+	private _height: Pixels = 0;
 	public rotation: Degrees = 0;
 	public xVelocity: PixelsPerSecond = 0;
 	public yVelocity: PixelsPerSecond = 0;
-	public _hitboxLeft: Pixels = 0;
-	public _hitboxTop: Pixels = 0;
-	public _hitboxRight: Pixels = 0;
-	public _hitboxBottom: Pixels = 0;
+	public __hitboxLeft: Pixels = 0;
+	public __hitboxTop: Pixels = 0;
+	public __hitboxRight: Pixels = 0;
+	public __hitboxBottom: Pixels = 0;
 	public originX: Pixels;
 	public originY: Pixels;
-	#sprite: string | null = null;
-	#spriteChanged: boolean = false;
-	#spriteImages: string[] | null = null;
-	#imageSpeed: Hertz = 1;
+	private _sprite: string | null = null;
+	private spriteChanged: boolean = false;
+	private spriteImages: string[] | null = null;
+	private _imageSpeed: Hertz = 1;
 	private animationRepeatableId: RepeatableId | null = null;
-	#imageIndex: number = 0;
+	private _imageIndex: number = 0;
 	public opacity: number = 1;
 	public onClick: AnyFunction | null = null;
 	public onRightClick: AnyFunction | null = null;
@@ -36,11 +36,11 @@ export default abstract class GameObject extends Snapshotable {
 	) {
 		super();
 		
-		this._object = document.createElement("div");
-		this._object.style.position = "absolute"
-		this._object.style.backgroundRepeat = "no-repeat"
-		this._object.style.backgroundSize = "100% 100%"
-		this._object.style.imageRendering = "pixelated";
+		this.__object = document.createElement("div");
+		this.__object.style.position = "absolute"
+		this.__object.style.backgroundRepeat = "no-repeat"
+		this.__object.style.backgroundSize = "100% 100%"
+		this.__object.style.imageRendering = "pixelated";
 		
 		this.originX = originX;
 		this.originY = originY;
@@ -56,15 +56,15 @@ export default abstract class GameObject extends Snapshotable {
 		
 		this.setHitbox(hitboxWidth, hitboxHeight);
 		
-		this._object.addEventListener("mousedown", e => {
+		this.__object.addEventListener("mousedown", e => {
 			if(e.button === 0) this.onClick?.();
 			if(e.button === 1) this.onMiddleClick?.();
 			if(e.button === 2) this.onRightClick?.();
 		});
 		
-		if(!Game._screen)
+		if(!Game.__screen)
 			throw new Error("Must initialize screen");
-		Game._screen.append(this._object);
+		Game.__screen.append(this.__object);
 		
 		Game._appendGameObject(this);
 	}
@@ -77,15 +77,15 @@ export default abstract class GameObject extends Snapshotable {
 		
 		const roundOrNot: (x: Pixels) => Pixels = Game.lockPositionsToVirtualPixels? Math.round : x => x;
 		const ceilOrNot: (x: Pixels) => Pixels = Game.lockPositionsToVirtualPixels? Math.ceil : x => x;
-		this._object.style.left = roundOrNot(this.left) * Game.virtualScreenSizeMultiplier + "px";
-		this._object.style.top = roundOrNot(this.top) * Game.virtualScreenSizeMultiplier + "px";
-		this._object.style.width = ceilOrNot(this.#width) * Game.virtualScreenSizeMultiplier + "px";
-		this._object.style.height = ceilOrNot(this.#height) * Game.virtualScreenSizeMultiplier + "px";
-		this._object.style.transform = "rotate(" + this.rotation + "deg)";
-		this._object.style.opacity = String(this.opacity);
-		if(this.#spriteChanged && this.sprite)
+		this.__object.style.left = roundOrNot(this.left) * Game.virtualScreenSizeMultiplier + "px";
+		this.__object.style.top = roundOrNot(this.top) * Game.virtualScreenSizeMultiplier + "px";
+		this.__object.style.width = ceilOrNot(this._width) * Game.virtualScreenSizeMultiplier + "px";
+		this.__object.style.height = ceilOrNot(this._height) * Game.virtualScreenSizeMultiplier + "px";
+		this.__object.style.transform = "rotate(" + this.rotation + "deg)";
+		this.__object.style.opacity = String(this.opacity);
+		if(this.spriteChanged && this.sprite)
 			Game.preloadImage(this.sprite)
-				.then(() => this._object.style.backgroundImage = "url(" + this.sprite + ")");
+				.then(() => this.__object.style.backgroundImage = "url(" + this.sprite + ")");
 	}
 	
 	
@@ -132,21 +132,21 @@ export default abstract class GameObject extends Snapshotable {
 	}
 	
 	public get width(): Pixels {
-		return this.#width;
+		return this._width;
 	}
 	public set width(width: Pixels) {
-		this._hitboxLeft = this._hitboxLeft * width / this.width;
-		this._hitboxRight = this._hitboxRight * width / this.width;
-		this.#width = width;
+		this.__hitboxLeft = this.__hitboxLeft * width / this.width;
+		this.__hitboxRight = this.__hitboxRight * width / this.width;
+		this._width = width;
 	}
 	
 	public get height(): Pixels {
-		return this.#height;
+		return this._height;
 	}
 	public set height(height: Pixels) {
-		this._hitboxTop = this._hitboxTop * height / this.height;
-		this._hitboxBottom = this._hitboxBottom * height / this.height;
-		this.#height = height;
+		this.__hitboxTop = this.__hitboxTop * height / this.height;
+		this.__hitboxBottom = this.__hitboxBottom * height / this.height;
+		this._height = height;
 	}
 	
 	
@@ -174,26 +174,26 @@ export default abstract class GameObject extends Snapshotable {
 	
 	
 	public setHitbox(hitboxWidth: Pixels = this.width, hitboxHeight: Pixels = this.height): void  {
-		this._hitboxLeft = this.width/2 - hitboxWidth/2;
-		this._hitboxTop = this.height/2 - hitboxHeight/2;
-		this._hitboxRight = this._hitboxLeft + hitboxWidth;
-		this._hitboxBottom = this._hitboxTop + hitboxHeight;
+		this.__hitboxLeft = this.width/2 - hitboxWidth/2;
+		this.__hitboxTop = this.height/2 - hitboxHeight/2;
+		this.__hitboxRight = this.__hitboxLeft + hitboxWidth;
+		this.__hitboxBottom = this.__hitboxTop + hitboxHeight;
 	}
 	
 	public get hitboxLeft(): Pixels {
-		return this.left + this._hitboxLeft;
+		return this.left + this.__hitboxLeft;
 	}
 	
 	public get hitboxTop(): Pixels {
-		return this.top + this._hitboxTop;
+		return this.top + this.__hitboxTop;
 	}
 	
 	public get hitboxRight(): Pixels {
-		return this.left + this._hitboxRight;
+		return this.left + this.__hitboxRight;
 	}
 	
 	public get hitboxBottom(): Pixels {
-		return this.top + this._hitboxBottom;
+		return this.top + this.__hitboxBottom;
 	}
 	
 	
@@ -213,18 +213,18 @@ export default abstract class GameObject extends Snapshotable {
 	
 	
 	public get sprite(): string | null {
-		return this.#sprite;
+		return this._sprite;
 	}
 	public set sprite(sprite: string | null) {
-		this.#sprite = sprite;
-		this.#spriteChanged = true;
+		this._sprite = sprite;
+		this.spriteChanged = true;
 	}
 	
 	public set animatedSprite(spriteImages: string[]) {
 		if(spriteImages.length === 0)
 			throw new Error("can't set animation without sprites");
 		
-		this.#spriteImages = spriteImages;
+		this.spriteImages = spriteImages;
 		this.sprite = spriteImages[0]!;
 		
 		Game.removeRepeatable(this.animationRepeatableId);
@@ -236,24 +236,24 @@ export default abstract class GameObject extends Snapshotable {
 		);
 	}
 	private nextAnimationFrame(): void {
-		if(!this.#spriteImages)
+		if(!this.spriteImages)
 			throw new Error("sprite images for animation not set");
-		this.imageIndex = (this.imageIndex + 1) % this.#spriteImages.length;
+		this.imageIndex = (this.imageIndex + 1) % this.spriteImages.length;
 	}
 	
 	public get imageIndex() {
-		return this.#imageIndex;
+		return this._imageIndex;
 	}
 	public set imageIndex(imageIndex: number) {
-		this.#imageIndex = imageIndex;
-		this.sprite = this.#spriteImages![imageIndex]!;
+		this._imageIndex = imageIndex;
+		this.sprite = this.spriteImages![imageIndex]!;
 	}
 	
 	public get imageSpeed() {
-		return this.#imageSpeed;
+		return this._imageSpeed;
 	}
 	public set imageSpeed(imageSpeed: Hertz) {
-		this.#imageSpeed = imageSpeed;
+		this._imageSpeed = imageSpeed;
 		if(!this.animationRepeatableId)
 			return;
 		if(imageSpeed === 0) {
@@ -267,10 +267,10 @@ export default abstract class GameObject extends Snapshotable {
 	
 	// higher depth = further into the screen (further behind)
 	public get depth(): number {
-		return -Number(this._object.style.zIndex);
+		return -Number(this.__object.style.zIndex);
 	}
 	public set depth(depth: number) {
-		this._object.style.zIndex = String(-depth);
+		this.__object.style.zIndex = String(-depth);
 	}
 	
 	
@@ -305,7 +305,7 @@ export default abstract class GameObject extends Snapshotable {
 	
 	public destroy(): void {
 		super.destroy();
-		this._object.remove();
+		this.__object.remove();
 		Game._popGameObject(this);
 		Game.removeRepeatable(this.animationRepeatableId);
 	}

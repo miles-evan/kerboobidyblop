@@ -5,12 +5,12 @@ import GameState from "./GameState.ts";
 
 
 export default class Game {
-	public static _gameObjects: GameObject[] = [];
+	public static __gameObjects: GameObject[] = [];
 	public static instanceCount: number = 0;
-	public static _instanceCounts: Record<string, number> = {}; // type -> count
+	private static _instanceCounts: Record<string, number> = {}; // type -> count
 	public static maxFrameRate: FramesPerSecond = 60;
 	public static isRunning: boolean = false;
-	public static _screen: HTMLElement | null;
+	public static __screen: HTMLElement | null;
 	public static screenWidth: Pixels;
 	public static screenHeight: Pixels;
 	public static mouseX: Pixels;
@@ -25,7 +25,7 @@ export default class Game {
 	private static onTouchStart: (e: TouchEvent) => void;
 	private static onTouchEnd: (e: TouchEvent) => void;
 	private static onMouseMove: (e: MouseEvent) => void;
-	static #frameCount: number = 0;
+	private static _frameCount: number = 0;
 	public static globalSteps: AnyFunction[] = [];
 	private static timeStart: Time = 0;
 	private static preloadedImages: Record<string, HTMLImageElement> = {};
@@ -33,9 +33,9 @@ export default class Game {
 	
 	
 	public static init(screen: HTMLElement): boolean {
-		if(Game._screen) return false;
+		if(Game.__screen) return false;
 		
-		Game._screen = screen;
+		Game.__screen = screen;
 		Game.screenWidth = screen.clientWidth;
 		Game.screenHeight = screen.clientHeight;
 		screen.style.position = "relative";
@@ -74,15 +74,15 @@ export default class Game {
 	// destroys all objects and cleans things up
 	public static destroy(): boolean {
 		Game.stop();
-		if(!Game._screen) return false;
+		if(!Game.__screen) return false;
 		window.removeEventListener("keydown", Game.onKeyDown);
 		window.removeEventListener("keyup", Game.onKeyUp);
-		Game._screen.removeEventListener("touchstart", Game.onTouchStart);
-		Game._screen.removeEventListener("touchend", Game.onTouchEnd);
-		Game._screen.removeEventListener("mousemove", Game.onMouseMove);
-		Game._screen = null;
+		Game.__screen.removeEventListener("touchstart", Game.onTouchStart);
+		Game.__screen.removeEventListener("touchend", Game.onTouchEnd);
+		Game.__screen.removeEventListener("mousemove", Game.onMouseMove);
+		Game.__screen = null;
 		GameState.destroyAll();
-		Game._gameObjects = [];
+		Game.__gameObjects = [];
 		Game._instanceCounts = {};
 		Game.instanceCount = 0;
 		return true;
@@ -93,14 +93,14 @@ export default class Game {
 		Game.instanceCount ++;
 		Game._instanceCounts[gameObject.constructor.name] =
 			1 + (Game._instanceCounts[gameObject.constructor.name] ?? 0);
-		Game._gameObjects.push(gameObject);
+		Game.__gameObjects.push(gameObject);
 	}
 	
 	public static _popGameObject(gameObject: GameObject): void {
 		Game.instanceCount --;
 		Game._instanceCounts[gameObject.constructor.name] =
 			-1 + (Game._instanceCounts[gameObject.constructor.name] ?? 0);
-		Game._gameObjects = Game._gameObjects.filter(element => element !== gameObject);
+		Game.__gameObjects = Game.__gameObjects.filter(element => element !== gameObject);
 	}
 	
 	
@@ -125,7 +125,7 @@ export default class Game {
 		gameObject: GameObject, type: GameObjectClass, x?: Pixels, y?: Pixels
 	): boolean {
 		return gameObject.withTempPosition(x, y, () => {
-			return Game._gameObjects.some(other =>
+			return Game.__gameObjects.some(other =>
 				other instanceof type
 				&& gameObject !== other
 				&& gameObject.collidedWith(other));
@@ -138,7 +138,7 @@ export default class Game {
 		
 		return gameObject.withTempPosition(x, y, () => {
 			const objectsCollidedWith: T[] = [];
-			Game._gameObjects.forEach(other => {
+			Game.__gameObjects.forEach(other => {
 				if(other instanceof type
 					&& gameObject !== other
 					&& gameObject.collidedWith(other))
@@ -162,9 +162,9 @@ export default class Game {
 	
 	
 	public static get virtualScreenSizeMultiplier(): number {
-		if(!Game._screen)
+		if(!Game.__screen)
 			throw new Error("Must initialize screen");
-		return Game._screen.clientHeight / Game.screenHeight;
+		return Game.__screen.clientHeight / Game.screenHeight;
 	}
 	
 	
@@ -193,7 +193,7 @@ export default class Game {
 	
 	
 	public static get frameCount(): number {
-		return Game.#frameCount;
+		return Game._frameCount;
 	}
 	
 	
@@ -238,8 +238,8 @@ export default class Game {
 		
 		Game.globalSteps.forEach(step => step());
 		
-		Game._gameObjects.forEach(gameObject => gameObject.step());
-		Game._gameObjects.forEach(gameObject => gameObject.update());
+		Game.__gameObjects.forEach(gameObject => gameObject.step());
+		Game.__gameObjects.forEach(gameObject => gameObject.update());
 		
 		Game.runRepeatables();
 		
@@ -248,6 +248,6 @@ export default class Game {
 			Game.timeoutId = setTimeout(Game.step, Math.max(0, 1000 / Game.maxFrameRate - timeSinceFrameStart));
 		}
 		
-		Game.#frameCount ++;
+		Game._frameCount ++;
 	}
 }
