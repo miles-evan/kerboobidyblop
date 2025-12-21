@@ -25,7 +25,7 @@ export default abstract class Snapshotable {
 	// -------------------------------- Snapshotting:
 	
 	
-	public static snapShotClassStatics(classToSnapshot: ClassStatics): ClassStatics {
+	public static snapshotClassStatics(classToSnapshot: ClassStatics): ClassStatics {
 		return Snapshotable.snapshotObject(classToSnapshot);
 	}
 	
@@ -59,6 +59,10 @@ export default abstract class Snapshotable {
 	// -------------------------------- Recovery:
 	
 	
+	public static recoverClassStatics(ctor: ClassStatics, classStaticsSnapshot: ClassStatics): void {
+		Object.assign(ctor, classStaticsSnapshot);
+	}
+	
 	public static recoverSnapshotable(objectSnapshot: Like<Snapshotable>): void {
 		const id = objectSnapshot.id;
 		if(id in GameState.objectRegistry) {
@@ -66,7 +70,7 @@ export default abstract class Snapshotable {
 			obj.recoverReplace(objectSnapshot);
 		} else {
 			const ctor = GameState.constructorRegistry[objectSnapshot.className]!;
-			ctor.recoverCreate(objectSnapshot); // manually do dynamic method dispatch since class was lost
+			ctor.recoverCreate(objectSnapshot); // manually do dynamic method dispatch since class is lost
 		}
 	}
 	
@@ -92,9 +96,10 @@ export default abstract class Snapshotable {
 			return snapshotData;
 		} else if("$-SNAPSHOTABLE_ID" in snapshotData) {
 			const id: number = snapshotData["$-SNAPSHOTABLE_ID"];
-			return id in GameState.objectRegistry?
-				GameState.objectRegistry[id]
-				: GameState.constructorRegistry[snapshotData["$-CLASS_NAME"]]!.recoverCreate(snapshotData);
+			if(id in GameState.objectRegistry) return GameState.objectRegistry[id];
+			const className = snapshotData["$-CLASS_NAME"];
+			const ctor = GameState.constructorRegistry[className]!
+			ctor.recoverCreate({ id, className } as Like<Snapshotable>); // stub out the snapshotable for now
 		} else if("$-HTML_ELEMENT" in snapshotData) {
 			const tempContainer = document.createElement("div");
 			tempContainer.innerHTML = snapshotData.outerHTML;

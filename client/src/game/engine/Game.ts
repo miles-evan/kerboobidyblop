@@ -82,7 +82,7 @@ export default class Game {
 		Game.__screen.removeEventListener("touchend", Game.#onTouchEnd);
 		Game.__screen.removeEventListener("mousemove", Game.#onMouseMove);
 		Game.__screen = null;
-		GameState.destroyAll();
+		GameState.destroyAllObjects();
 		Game.__gameObjects = [];
 		Game._instanceCounts = {};
 		Game.instanceCount = 0;
