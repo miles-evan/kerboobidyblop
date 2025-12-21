@@ -1,9 +1,10 @@
 import GameState from "./GameState.ts";
-import Snapshot from "./Snapshot.ts";
 
 
 export default abstract class Snapshotable {
+	
 	private static nextId: number = 0;
+	
 	public readonly id: number;
 	private readonly className: string;
 	
@@ -19,8 +20,28 @@ export default abstract class Snapshotable {
 		delete GameState.objectRegistry[this.id];
 	}
 	
-	private snapshot(): Snapshot {
+	public snapshot() {
+		return Snapshotable.snapshotObject(this);
+	}
 	
+	private static snapshotData(data: any): any {
+		if(data instanceof Snapshotable) {
+			return { SNAPSHOTABLE_ID: data.id }
+		} else if(Array.isArray(data)) {
+			return data.map(Snapshotable.snapshotData);
+		} else if(typeof data === "object" && data !== null) {
+			return Snapshotable.snapshotObject(data);
+		} else {
+			return data;
+		}
+	}
+	
+	private static snapshotObject(data: object) {
+		const snapshot: any = { ...data };
+		for(const key in snapshot) {
+			snapshot[key] = Snapshotable.snapshotData(snapshot[key]);
+		}
+		return snapshot;
 	}
 	
 }

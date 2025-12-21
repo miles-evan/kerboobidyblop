@@ -11,4 +11,8 @@ export default class GameState {
 		for(const className in GameState.constructorRegistry)
 			delete GameState.constructorRegistry[className];
 	}
+	
+	public static snapshot() {
+	
+	}
 }
