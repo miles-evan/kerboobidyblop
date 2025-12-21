@@ -26,17 +26,18 @@ export default class GameState {
 			classStatics[className] = Snapshotable.snapshotClassStatics(classStatics[className]!);
 		}
 		
-		// Game class
+		// other classes
+		const snapshotableClassStatics: ClassStatics = Snapshotable.snapshotClassStatics(Snapshotable);
 		const gameClassStatics: ClassStatics = Snapshotable.snapshotClassStatics(Game);
 		
-		return { objects, classStatics, gameClassStatics };
+		return { objects, classStatics, snapshotableClassStatics, gameClassStatics };
 	}
 	
 	
 	public static recover(snapshot: GameStateSnapshot): void {
 		// objects
 		for(const id in GameState.objectRegistry) {
-			if(!(id in snapshot)) delete GameState.objectRegistry[id];
+			if(!(id in snapshot.objects)) GameState.objectRegistry[id]!.destroy();
 		}
 		Object.values(snapshot.objects).forEach(Snapshotable.recoverSnapshotable);
 		
@@ -48,7 +49,8 @@ export default class GameState {
 			);
 		}
 		
-		// Game class
+		// other classes
+		Snapshotable.recoverClassStatics(Snapshotable, snapshot.snapshotableClassStatics);
 		Snapshotable.recoverClassStatics(Game, snapshot.gameClassStatics);
 	}
 }

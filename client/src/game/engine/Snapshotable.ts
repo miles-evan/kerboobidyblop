@@ -85,9 +85,9 @@ export default abstract class Snapshotable {
 	protected static recoverCreate(objectSnapshot: Like<Snapshotable>): Snapshotable {
 		const ctor = GameState.constructorRegistry[objectSnapshot.className]!;
 		const obj: Snapshotable = Object.create(ctor.prototype);
+		GameState.objectRegistry[objectSnapshot.id] = obj;
 		objectSnapshot = Snapshotable.expandAndLink(objectSnapshot);
 		Object.assign(obj, objectSnapshot);
-		GameState.objectRegistry[obj.id] = obj;
 		return obj;
 	}
 	
@@ -99,10 +99,10 @@ export default abstract class Snapshotable {
 			if(id in GameState.objectRegistry) return GameState.objectRegistry[id];
 			const className = snapshotData["$-CLASS_NAME"];
 			const ctor = GameState.constructorRegistry[className]!
-			ctor.recoverCreate({ id, className } as Like<Snapshotable>); // stub out the snapshotable for now
+			return ctor.recoverCreate({ id, className } as Like<Snapshotable>); // stub out the snapshotable for now
 		} else if("$-HTML_ELEMENT" in snapshotData) {
 			const tempContainer = document.createElement("div");
-			tempContainer.innerHTML = snapshotData.outerHTML;
+			tempContainer.innerHTML = snapshotData["$-HTML_ELEMENT"];
 			const restored = tempContainer.firstElementChild!;
 			Game.__screen!.append(restored);
 			return restored;
