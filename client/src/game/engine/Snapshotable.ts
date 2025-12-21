@@ -104,7 +104,7 @@ export default abstract class Snapshotable {
 			const tempContainer = document.createElement("div");
 			tempContainer.innerHTML = snapshotData["$-HTML_ELEMENT"];
 			const restored = tempContainer.firstElementChild!;
-			Game.#screen!.append(restored);
+			Game.__appendHTMLElementToScreen(restored);
 			return restored;
 		} else if(Array.isArray(snapshotData)) {
 			return snapshotData.map(Snapshotable.expandAndLink);

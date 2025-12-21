@@ -90,7 +90,7 @@ export default class Game {
 	}
 	
 	
-	public static _appendGameObject(gameObject: GameObject): void {
+	public static __appendGameObject(gameObject: GameObject): void {
 		Game.instanceCount ++;
 		Game._instanceCounts[gameObject.constructor.name] =
 			1 + (Game._instanceCounts[gameObject.constructor.name] ?? 0);
@@ -99,11 +99,17 @@ export default class Game {
 		Game.#screen.append(gameObject.__object);
 	}
 	
-	public static _popGameObject(gameObject: GameObject): void {
+	public static __popGameObject(gameObject: GameObject): void {
 		Game.instanceCount --;
 		Game._instanceCounts[gameObject.constructor.name] =
 			-1 + (Game._instanceCounts[gameObject.constructor.name] ?? 0);
 		Game.__gameObjects = Game.__gameObjects.filter(element => element !== gameObject);
+	}
+	
+	
+	public static __appendHTMLElementToScreen(el: Element) {
+		if(!Game.#screen) throw new Error("Must initialize screen");
+		Game.#screen.append(el);
 	}
 	
 	

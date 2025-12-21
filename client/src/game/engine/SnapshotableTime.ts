@@ -5,23 +5,23 @@ import Snapshotable from "./Snapshotable.ts";
 export default class SnapshotableTime extends Snapshotable {
 	public value: Time;
 	
-	constructor(time: Time) {
+	public constructor(time: Time) {
 		super();
 		this.value = time;
 	}
 	
-	snapshot(): Like<Snapshotable> {
+	public snapshot(): Like<Snapshotable> {
 		const result = super.snapshot() as SnapshotableTime;
 		result.value -= Date.now();
 		return result;
 	}
 	
-	public recoverReplace(objectSnapshot: Like<Snapshotable>): void {
+	protected recoverReplace(objectSnapshot: Like<SnapshotableTime>): void {
 		super.recoverReplace(objectSnapshot);
 		this.value += Date.now();
 	}
 	
-	public static recoverCreate(objectSnapshot: Like<Snapshotable>): SnapshotableTime {
+	protected static recoverCreate(objectSnapshot: Like<SnapshotableTime>): SnapshotableTime {
 		const obj = Snapshotable.recoverCreate(objectSnapshot) as SnapshotableTime;
 		obj.value += Date.now();
 		return obj;

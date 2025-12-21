@@ -56,13 +56,9 @@ export default abstract class GameObject extends Snapshotable {
 		
 		this.setHitbox(hitboxWidth, hitboxHeight);
 		
-		this.__object.addEventListener("mousedown", e => {
-			if(e.button === 0) this.onClick?.();
-			if(e.button === 1) this.onMiddleClick?.();
-			if(e.button === 2) this.onRightClick?.();
-		});
+		this.__object.addEventListener("mousedown", this.onMouseDown);
 		
-		Game._appendGameObject(this);
+		Game.__appendGameObject(this);
 	}
 	
 	
@@ -270,6 +266,13 @@ export default abstract class GameObject extends Snapshotable {
 	}
 	
 	
+	private onMouseDown(e: MouseEvent): void {
+		if(e.button === 0) this.onClick?.();
+		if(e.button === 1) this.onMiddleClick?.();
+		if(e.button === 2) this.onRightClick?.();
+	}
+	
+	
 	public collidedWith(other: GameObject): boolean {
 		return this.hitboxRight > other.hitboxLeft
 			&& this.hitboxLeft < other.hitboxRight
@@ -302,11 +305,26 @@ export default abstract class GameObject extends Snapshotable {
 	public destroy(): void {
 		super.destroy();
 		this.__object.remove();
-		Game._popGameObject(this);
+		Game.__popGameObject(this);
 		Game.removeRepeatable(this.animationRepeatableId);
 	}
 	
 	
 	public abstract step(): void;
+	
+	
+	// -------------------------------- snapshot recovery
+	
+	protected recoverReplace(objectSnapshot: Like<GameObject>): void {
+		this.__object.remove(); // remove HTML element since we'll create a new one
+		super.recoverReplace(objectSnapshot);
+		this.__object.addEventListener("mousedown", e => this.onMouseDown(e)); // must be added back
+	}
+	
+	protected static recoverCreate(objectSnapshot: Like<GameObject>): GameObject {
+		const obj = super.recoverCreate(objectSnapshot) as GameObject;
+		obj.__object.addEventListener("mousedown", e => obj.onMouseDown(e)); // must be added back
+		return obj;
+	}
 	
 }
