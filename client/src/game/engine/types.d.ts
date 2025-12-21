@@ -15,17 +15,25 @@ declare global {
 	type Constructor<T> = abstract new (...args: any[]) => T;
 	type GameObjectClass = Constructor<GameObject>;
 	type SnapshotableClass = Constructor<Snapshotable>;
+	type ClassStatics = Record<string, any>; // because TS complains about Constructor<> if it's a protected constructor
 	type Key = KeyboardEvent["key"] | "touch";
 	type AnyFunction = (...args: any[]) => any;
 	type RepeatableId = number;
 	type Hertz = number;
-	type Time = number; // milliseconds since epoch
 	type Seconds = number;
 	type Milliseconds = number;
+	type Time = Milliseconds; // milliseconds since epoch
 	type Pixels = number;
 	type PixelsPerSecond = number;
 	type Degrees = number;
 	type Radians = number;
 	type Frames = number;
 	type FramesPerSecond = number;
+	type Like<T> = { [K in keyof T]: T[K] }; // has same keys and value types as T
+	type KeysLike<T> = { [K in keyof T]: unkown }; // has same keys as T, but values unknown
+	type GameStateSnapshot = {
+		objects: Record<number, Like<Snapshotable>>,
+		classStatics: Record<string, Like<ClassStatics>>,
+		gameClassStatics: Like<ClassStatics>,
+	};
 }

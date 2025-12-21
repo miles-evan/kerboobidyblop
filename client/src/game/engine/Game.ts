@@ -5,6 +5,7 @@ import GameState from "./GameState.ts";
 
 
 export default class Game {
+	// naming scheme: regularField, _backingField, __avoidUsingUnlessYouHaveToField, #excludedFromStateField
 	public static __gameObjects: GameObject[] = [];
 	public static instanceCount: number = 0;
 	private static _instanceCounts: Record<string, number> = {}; // type -> count
@@ -20,15 +21,15 @@ export default class Game {
 	private static lastFrameTimeStamp: Time = 0;
 	private static currentFrameTimeStamp: Time = 0;
 	private static timeoutId: number | null = null;
-	private static onKeyDown: (e: KeyboardEvent) => void;
-	private static onKeyUp: (e: KeyboardEvent) => void;
-	private static onTouchStart: (e: TouchEvent) => void;
-	private static onTouchEnd: (e: TouchEvent) => void;
-	private static onMouseMove: (e: MouseEvent) => void;
+	static #onKeyDown: (e: KeyboardEvent) => void;
+	static #onKeyUp: (e: KeyboardEvent) => void;
+	static #onTouchStart: (e: TouchEvent) => void;
+	static #onTouchEnd: (e: TouchEvent) => void;
+	static #onMouseMove: (e: MouseEvent) => void;
 	private static _frameCount: number = 0;
-	public static globalSteps: AnyFunction[] = [];
+	public static globalSteps: Array<AnyFunction | SnapshotableClosure> = [];
 	private static timeStart: Time = 0;
-	private static preloadedImages: Record<string, HTMLImageElement> = {};
+	static #preloadedImages: Record<string, HTMLImageElement> = {};
 	public static _repeatables: Record<number, Repeatable> = {}; // id -> repeatable
 	
 	
@@ -43,30 +44,30 @@ export default class Game {
 		screen.style.position = "relative";
 		screen.addEventListener("contextmenu", e => e.preventDefault());
 		
-		Game.onKeyDown = (e: KeyboardEvent): void => {
+		Game.#onKeyDown = (e: KeyboardEvent): void => {
 			if(!(e.key in Game.keysDown))
 				Game.keysDown[e.key as Key] = Date.now();
 		};
-		Game.onKeyUp = (e: KeyboardEvent): void => {
+		Game.#onKeyUp = (e: KeyboardEvent): void => {
 			delete Game.keysDown[e.key as Key];
 		};
-		Game.onTouchStart = (): void => {
+		Game.#onTouchStart = (): void => {
 			if(!("touch" in Game.keysDown))
 				Game.keysDown["touch"] = Date.now();
 		};
-		Game.onTouchEnd = (): void => {
+		Game.#onTouchEnd = (): void => {
 			delete Game.keysDown["touch"];
 		};
-		Game.onMouseMove = (e: MouseEvent): void => {
+		Game.#onMouseMove = (e: MouseEvent): void => {
 			const rect: DOMRect = screen.getBoundingClientRect();
 			Game.mouseX = (e.clientX - rect.left) / Game.virtualScreenSizeMultiplier;
 			Game.mouseY = (e.clientY - rect.top) / Game.virtualScreenSizeMultiplier;
 		}
-		window.addEventListener("keydown", Game.onKeyDown);
-		window.addEventListener("keyup", Game.onKeyUp);
-		screen.addEventListener("touchstart", Game.onTouchStart);
-		screen.addEventListener("touchend", Game.onTouchEnd);
-		screen.addEventListener('mousemove', Game.onMouseMove);
+		window.addEventListener("keydown", Game.#onKeyDown);
+		window.addEventListener("keyup", Game.#onKeyUp);
+		screen.addEventListener("touchstart", Game.#onTouchStart);
+		screen.addEventListener("touchend", Game.#onTouchEnd);
+		screen.addEventListener('mousemove', Game.#onMouseMove);
 		
 		return true;
 	}
@@ -75,11 +76,11 @@ export default class Game {
 	public static destroy(): boolean {
 		Game.stop();
 		if(!Game.__screen) return false;
-		window.removeEventListener("keydown", Game.onKeyDown);
-		window.removeEventListener("keyup", Game.onKeyUp);
-		Game.__screen.removeEventListener("touchstart", Game.onTouchStart);
-		Game.__screen.removeEventListener("touchend", Game.onTouchEnd);
-		Game.__screen.removeEventListener("mousemove", Game.onMouseMove);
+		window.removeEventListener("keydown", Game.#onKeyDown);
+		window.removeEventListener("keyup", Game.#onKeyUp);
+		Game.__screen.removeEventListener("touchstart", Game.#onTouchStart);
+		Game.__screen.removeEventListener("touchend", Game.#onTouchEnd);
+		Game.__screen.removeEventListener("mousemove", Game.#onMouseMove);
 		Game.__screen = null;
 		GameState.destroyAll();
 		Game.__gameObjects = [];
@@ -204,13 +205,13 @@ export default class Game {
 	
 	public static async preloadImage(url: string) {
 		return new Promise<void>(resolve => {
-			if(url in Game.preloadedImages) {
+			if(url in Game.#preloadedImages) {
 				resolve();
 				return;
 			}
 			const img = new Image();
 			img.onload = () => {
-				Game.preloadedImages[url] = img;
+				Game.#preloadedImages[url] = img;
 				resolve();
 			};
 			img.src = url;
@@ -236,7 +237,7 @@ export default class Game {
 	private static step(): void {
 		Game.updateDeltaTime();
 		
-		Game.globalSteps.forEach(step => step());
+		Game.globalSteps.forEach(step => step instanceof SnapshotableClosure? step.run() : step());
 		
 		Game.__gameObjects.forEach(gameObject => gameObject.step());
 		Game.__gameObjects.forEach(gameObject => gameObject.update());

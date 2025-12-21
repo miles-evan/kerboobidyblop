@@ -1,4 +1,5 @@
-import type Snapshotable from "./Snapshotable.ts";
+import Snapshotable from "./Snapshotable.ts";
+import Game from "./Game.ts";
 
 // keeps track of all Snapshotables. can create snapshots
 export default class GameState {
@@ -12,7 +13,19 @@ export default class GameState {
 			delete GameState.constructorRegistry[className];
 	}
 	
-	public static snapshot() {
-	
+	public static snapshot(): GameStateSnapshot {
+		const objects: Record<number, Like<Snapshotable>> = { ...GameState.objectRegistry };
+		for(const id in objects) {
+			objects[id] = (objects[id] as Snapshotable).snapshot();
+		}
+		
+		const classStatics: Record<string, ClassStatics> = { ...GameState.constructorRegistry };
+		for(const className in classStatics) {
+			classStatics[className] = Snapshotable.snapShotClassStatics(classStatics[className]!);
+		}
+		
+		const gameClassStatics: ClassStatics = Snapshotable.snapShotClassStatics(Game);
+		
+		return { objects, classStatics, gameClassStatics };
 	}
 }

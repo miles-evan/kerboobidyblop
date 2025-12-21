@@ -32,7 +32,6 @@ export default class Repeatable extends Snapshotable {
 	}
 	
 	private runFunction() {
-		if(this.fn instanceof SnapshotableClosure) this.fn.run();
-		else this.fn();
+		this.fn instanceof SnapshotableClosure? this.fn.run() : this.fn();
 	}
 }

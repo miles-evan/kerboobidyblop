@@ -5,7 +5,7 @@ import Snapshotable from "./Snapshotable.ts";
 
 export default abstract class GameObject extends Snapshotable {
 	
-	protected __object: HTMLDivElement; // recommended not to use this unless you have to
+	protected __object: HTMLDivElement;
 	public left: Pixels = 0;
 	public top: Pixels = 0;
 	private _width: Pixels = 0;
