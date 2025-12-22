@@ -36,7 +36,7 @@ export default abstract class Snapshotable {
 	private static snapshotData(data: any): any {
 		if(data instanceof Snapshotable) {
 			return { "$-SNAPSHOTABLE_ID": data.id, "$-CLASS_NAME": data.className };
-		} else if(data instanceof HTMLElement) {
+		} else if(data instanceof Element) {
 			return { "$-HTML_ELEMENT": data.outerHTML };
 		} else if(Array.isArray(data)) {
 			return data.map(Snapshotable.snapshotData);
@@ -60,7 +60,7 @@ export default abstract class Snapshotable {
 	
 	
 	public static recoverClassStatics(ctor: ClassStatics, classStaticsSnapshot: ClassStatics): void {
-		Object.assign(ctor, classStaticsSnapshot);
+		Object.assign(ctor, Snapshotable.expandAndLink(classStaticsSnapshot));
 	}
 	
 	public static recoverSnapshotable(objectSnapshot: Like<Snapshotable>): void {

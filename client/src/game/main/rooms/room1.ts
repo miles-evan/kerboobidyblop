@@ -4,24 +4,40 @@ import Game from "../../engine/Game.ts";
 import CastPadPlayer from "../castHandlers/CastPadPlayer.ts";
 import Fluxometer from "../objects/Fluxometer.ts";
 import HealthMeter from "../objects/HealthMeter.ts";
+import GameState from "../../engine/GameState.ts";
+import Snapshotable from "../../engine/Snapshotable.ts";
+import SnapshotableClosure from "../../engine/SnapshotableClosure.ts";
 
-export default function room1() {
-	Game.screenWidth = 192;
-	Game.screenHeight = 212;
-	Game.globalSteps.push(() => {
-		if(Game.isKeyPressed(" "))
-			Game.stop();
-	});
+export default class Room1 extends Snapshotable {
 	
-	new Board(
-		new CastPadPlayer(
-			new HealthMeter(100, Game.screenHeight - 16),
-			new Fluxometer(),
-			130, 75,
-		),
-		new RandomBot(
-			new HealthMeter(100, 16),
-		),
-	);
+	static {
+		GameState.registerConstructor(Room1);
+	}
 	
+	public static load(): void {
+		Game.screenWidth = 192;
+		Game.screenHeight = 212;
+		
+		new Board(
+			new CastPadPlayer(
+				new HealthMeter(100, Game.screenHeight - 16),
+				new Fluxometer(),
+				130, 75,
+			),
+			new RandomBot(
+				new HealthMeter(100, 16),
+			),
+		);
+		
+		Game.globalSteps.push(new SnapshotableClosure(Room1, Room1.test));
+	}
+	
+	private static test(): void {
+		if(Game.isKeyPressed("Escape")) {
+			const snapshot = GameState.snapshot();
+			setTimeout(() => {
+				GameState.recover(snapshot);
+			}, 1000);
+		}
+	}
 }

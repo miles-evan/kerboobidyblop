@@ -4,9 +4,15 @@ import SpellTrail from "./SpellTrail.ts";
 import type Board from "./Board.ts";
 import SnapshotableClosure from "../../engine/SnapshotableClosure.ts";
 import SnapshotableTime from "../../engine/SnapshotableTime.ts";
+import GameState from "../../engine/GameState.ts";
 
 
 export default class Spell extends GameObject {
+	
+	private static readonly secondsPerTile: Seconds = 1.5;
+	private static readonly velocity: PixelsPerSecond = 16 / Spell.secondsPerTile;
+	private static tileTickRepeatableId: RepeatableId | null = null;
+	private static lastTileTickTime: SnapshotableTime = new SnapshotableTime(0);
 	
 	public lane: Lane;
 	public readonly tier: Tier; // the spell's number
@@ -15,10 +21,9 @@ export default class Spell extends GameObject {
 	public board: Board;
 	private readonly trailRepeatableId: RepeatableId;
 	
-	private static readonly secondsPerTile: Seconds = 1.5;
-	private static readonly velocity: PixelsPerSecond = 16 / Spell.secondsPerTile;
-	private static tileTickRepeatableId: RepeatableId | null = null;
-	private static lastTileTickTime: SnapshotableTime = new SnapshotableTime(0);
+	static {
+		GameState.registerConstructor(Spell);
+	}
 	
 	public constructor(x: Pixels, y: Pixels, lane: Lane, tier: Tier, playerNum: PlayerNum, power: Power = "none", board: Board) {
 		super(x, y, 16, 16, `/src/game/main/sprites/spells/spell-player${playerNum}-tier${tier}.png`);

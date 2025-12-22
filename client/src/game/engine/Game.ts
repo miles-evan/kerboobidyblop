@@ -87,6 +87,8 @@ export default class Game {
 		Game.__gameObjects = [];
 		Game._instanceCounts = {};
 		Game.instanceCount = 0;
+		Game.globalSteps = [];
+		Game._repeatables = {};
 		return true;
 	}
 	

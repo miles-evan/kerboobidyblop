@@ -7,6 +7,11 @@ export default class GameState {
 	public static readonly constructorRegistry: Record<string, typeof Snapshotable> = {}; // class name -> constructor
 	
 	
+	public static registerConstructor(ctor: typeof Snapshotable | any) { // typescript's making me want to blow my brains out because no matter what I say the type is of the constructor, it gets mad at one of the usages. If I say typeof Snapshotable, Room1 works, but GameObject doesn't, and if I say Constructor<Snapshotable> the converse happens. I give up. I said typeof Snapshotable | any so that it's clear what it wants, but It'll take whatever
+		GameState.constructorRegistry[ctor.name] = ctor as typeof Snapshotable;
+	}
+	
+	
 	public static destroyAllObjects(): void {
 		for(const id in GameState.objectRegistry)
 			GameState.objectRegistry[id]!.destroy();
@@ -36,8 +41,10 @@ export default class GameState {
 	
 	public static recover(snapshot: GameStateSnapshot): void {
 		// objects
-		for(const id in GameState.objectRegistry) {
-			if(!(id in snapshot.objects)) GameState.objectRegistry[id]!.destroy();
+		for(const id of Object.keys(GameState.objectRegistry)) {
+			if(!(id in snapshot.objects)) {
+				GameState.objectRegistry[id as unknown as number]!.destroy();
+			}
 		}
 		Object.values(snapshot.objects).forEach(Snapshotable.recoverSnapshotable);
 		
@@ -52,5 +59,8 @@ export default class GameState {
 		// other classes
 		Snapshotable.recoverClassStatics(Snapshotable, snapshot.snapshotableClassStatics);
 		Snapshotable.recoverClassStatics(Game, snapshot.gameClassStatics);
+		
+		Game.stop();
+		Game.start();
 	}
 }

@@ -315,6 +315,7 @@ export default abstract class GameObject extends Snapshotable {
 	
 	// -------------------------------- snapshot recovery
 	
+	
 	protected recoverReplace(objectSnapshot: Like<GameObject>): void {
 		this.__object.remove(); // remove HTML element since we'll create a new one
 		super.recoverReplace(objectSnapshot);
