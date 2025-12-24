@@ -19,6 +19,8 @@ export default class GameState {
 	
 	
 	public static snapshot(): GameStateSnapshot {
+		GameState.clean();
+		
 		// objects
 		const objects: Record<number, Like<Snapshotable>> = { ...GameState.objectRegistry };
 		for(const id in objects) {
@@ -42,11 +44,13 @@ export default class GameState {
 	public static recover(snapshot: GameStateSnapshot): void {
 		// objects
 		for(const id of Object.keys(GameState.objectRegistry)) {
-			if(!(id in snapshot.objects)) {
+			if(!(id in snapshot.objects))
 				GameState.objectRegistry[id as unknown as number]!.destroy();
-			}
 		}
-		Object.values(snapshot.objects).forEach(Snapshotable.recoverSnapshotable);
+		Object.values(snapshot.objects).forEach(object => {
+			console.log(object);
+			Snapshotable.recoverSnapshotable(object);
+		});
 		
 		// classes
 		for(const className in GameState.constructorRegistry) {
@@ -63,4 +67,34 @@ export default class GameState {
 		Game.stop();
 		Game.start();
 	}
+	
+	
+	// does both garbage collection (mark and sweep) and dangling reference removal (sets to null)
+	public static clean(): void {
+		const validIds: Set<number> = new Set(Object.values(GameState.objectRegistry).map(obj => obj.id));
+		const idsFound: Set<number> = new Set();
+		
+		// objects
+		for(const obj of Object.values(GameState.objectRegistry)) {
+			obj.clean(validIds, idsFound);
+		}
+		
+		// classes
+		for(const ctor of Object.values(GameState.constructorRegistry)) {
+			Snapshotable.cleanClassStatics(ctor, validIds, idsFound);
+		}
+		
+		// Game class
+		Snapshotable.cleanClassStatics(Game, validIds, idsFound);
+		
+		// garbage collection
+		for(const id of Object.keys(GameState.objectRegistry)) {
+			if(!idsFound.has(Number(id))) {
+				console.log(`garbage collecting ${id}`)
+				GameState.objectRegistry[id as unknown as number]!.destroy();
+				if(id in GameState.objectRegistry) console.log("HOW THE FUCK IS ID STILL IN THERE")
+			}
+		}
+	}
 }
+

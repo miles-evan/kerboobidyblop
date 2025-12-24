@@ -317,6 +317,7 @@ export default abstract class GameObject extends Snapshotable {
 	
 	
 	protected recoverReplace(objectSnapshot: Like<GameObject>): void {
+		if(!(this.__object instanceof Element)) throw new Error(`__object isn't an HTML element. it's: ${this.__object} and my id is ${this.id}`)
 		this.__object.remove(); // remove HTML element since we'll create a new one
 		super.recoverReplace(objectSnapshot);
 		this.__object.addEventListener("mousedown", e => this.onMouseDown(e)); // must be added back
@@ -324,6 +325,7 @@ export default abstract class GameObject extends Snapshotable {
 	
 	protected static recoverCreate(objectSnapshot: Like<GameObject>): GameObject {
 		const obj = super.recoverCreate(objectSnapshot) as GameObject;
+		if(!(obj.__object instanceof Element)) throw new Error(`__object isn't an HTML element. it's: ${obj.__object} and my id is ${obj.id}`)
 		obj.__object.addEventListener("mousedown", e => obj.onMouseDown(e)); // must be added back
 		return obj;
 	}

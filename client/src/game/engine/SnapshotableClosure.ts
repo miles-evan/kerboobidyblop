@@ -21,11 +21,12 @@ export default class SnapshotableClosure extends Snapshotable {
 		const base = this.objOrClassName instanceof Snapshotable?
 			this.objOrClassName as Record<string, any>
 			: GameState.constructorRegistry[this.objOrClassName] as Record<string, any>;
-		if(!base)
+		if(!base) {
 			throw new Error(`Class "${this.objOrClassName}" not found, make sure you register your class manually if it's used before any instances of it are created.
 			Ex: static{GameState.registerConstructor(MyClass);}
 			The object was: ${this.objOrClassName}
-			The SnapshotableClosure had: ${this.className}, ${this.id}`);
+			The SnapshotableClosure had: className=${this.className}, id=${this.id}`);
+		}
 		if(!(this.methodName in base)) throw new Error(`Method "${this.methodName}" not found on object`)
 		base[this.methodName]();
 	}

@@ -10,6 +10,8 @@ import SnapshotableClosure from "../../engine/SnapshotableClosure.ts";
 
 export default class Room1 extends Snapshotable {
 	
+	private static testing: boolean = false;
+	
 	static {
 		GameState.registerConstructor(Room1);
 	}
@@ -33,10 +35,13 @@ export default class Room1 extends Snapshotable {
 	}
 	
 	private static test(): void {
-		if(Game.isKeyPressed("Escape")) {
+		if(Game.isKeyPressed("Escape") && !Room1.testing) {
+			Room1.testing = true;
 			const snapshot = GameState.snapshot();
+			console.log(snapshot);
 			setTimeout(() => {
 				GameState.recover(snapshot);
+				Room1.testing = false;
 			}, 1000);
 		}
 	}
