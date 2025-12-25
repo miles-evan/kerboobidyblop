@@ -46,7 +46,7 @@ export default abstract class Snapshotable {
 	private static snapshotData(data: any): any {
 		if(data instanceof Snapshotable) {
 			const result = { "$-SNAPSHOTABLE_ID": data.id, "$-CLASS_NAME": data.className };
-			if(data.id === -1) Object.assign(result, data); // inline snapshotable
+			if(data.id === -1) Object.assign(result, data.snapshot()); // inline snapshotable
 			return result;
 		} else if(data instanceof Element) {
 			return { "$-HTML_ELEMENT": data.outerHTML };
@@ -93,7 +93,14 @@ export default abstract class Snapshotable {
 	}
 	
 	protected static recoverCreate(objectSnapshot: Like<Snapshotable>): Snapshotable {
-		const obj: Snapshotable = Snapshotable.stubOutAndRegister(objectSnapshot.id!, objectSnapshot.className);
+		let obj: Snapshotable;
+		if(objectSnapshot.id !== -1) {
+			obj = Snapshotable.stubOutAndRegister(objectSnapshot.id, objectSnapshot.className);
+		} else {
+			obj = Snapshotable.stubOut(objectSnapshot.className);
+			const { "$-SNAPSHOTABLE_ID": _1, "$-CLASS_NAME": _2, ...withoutTags } = objectSnapshot as any;
+			objectSnapshot = withoutTags; // remove tags
+		}
 		objectSnapshot = Snapshotable.expandAndLink(objectSnapshot);
 		Object.assign(obj, objectSnapshot);
 		return obj;
@@ -110,16 +117,14 @@ export default abstract class Snapshotable {
 		return Object.create(ctor.prototype);
 	}
 	
-	public static expandAndLink(snapshotData: any): any {
+	private static expandAndLink(snapshotData: any): any {
 		if(typeof snapshotData !== "object" || snapshotData === null) { // primitive
 			return snapshotData;
 		} else if("$-SNAPSHOTABLE_ID" in snapshotData) {
 			const id: number = snapshotData["$-SNAPSHOTABLE_ID"];
 			if(id === -1) { // inline snapshotable
-				const obj: Snapshotable = Snapshotable.stubOut(snapshotData.className);
-				delete snapshotData["$-SNAPSHOTABLE_ID"]; delete snapshotData["$-CLASS_NAME"];
-				Object.assign(obj, snapshotData);
-				return obj;
+				const ctor = GameState.constructorRegistry[snapshotData["$-CLASS_NAME"]]!;
+				return ctor.recoverCreate(snapshotData); // manually do dynamic method dispatch since class is lost
 			}
 			if(id in GameState.objectRegistry) return GameState.objectRegistry[id];
 			const className = snapshotData["$-CLASS_NAME"];
