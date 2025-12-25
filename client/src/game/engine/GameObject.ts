@@ -26,9 +26,9 @@ export default abstract class GameObject extends Snapshotable {
 	private animationRepeatableId: RepeatableId | null = null;
 	private _imageIndex: number = 0;
 	public opacity: number = 1;
-	public onClick: AnyFunction | null = null;
-	public onRightClick: AnyFunction | null = null;
-	public onMiddleClick: AnyFunction | null = null;
+	public onClick: AnyFunction | SnapshotableClosure | null = null;
+	public onRightClick: AnyFunction | SnapshotableClosure | null = null;
+	public onMiddleClick: AnyFunction | SnapshotableClosure | null = null;
 	
 	protected constructor(
 		x: Pixels = 0, y: Pixels = 0, width: Pixels = 0, height: Pixels = 0, sprite: string = "",
@@ -267,9 +267,12 @@ export default abstract class GameObject extends Snapshotable {
 	
 	
 	private onMouseDown(e: MouseEvent): void {
-		if(e.button === 0) this.onClick?.();
-		if(e.button === 1) this.onMiddleClick?.();
-		if(e.button === 2) this.onRightClick?.();
+		if(e.button === 0)
+			this.onClick instanceof SnapshotableClosure? this.onClick.run() : this.onClick?.();
+		else if(e.button === 1)
+			this.onMiddleClick instanceof SnapshotableClosure? this.onMiddleClick.run() : this.onMiddleClick?.();
+		else if(e.button === 2)
+			this.onRightClick instanceof SnapshotableClosure? this.onRightClick.run() : this.onRightClick?.();
 	}
 	
 	
