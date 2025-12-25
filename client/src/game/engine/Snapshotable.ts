@@ -14,7 +14,7 @@ export default abstract class Snapshotable {
 	// "reference" is the default setting, "inline" means it has no ID, and won't be stored in the list of objects
 	// pick "inline" if it doesn't need to be relinked up, like if its reference isn´t shared. "inline" is helpful
 	// if the garbage collector is wasting a lot of time removing instances of it
-	protected constructor(mode: "reference" | "inline" = "reference") {
+	protected constructor(mode: "inline" | "reference" = "reference") {
 		if(mode === "reference") {
 			this.id = Snapshotable.nextId ++;
 			GameState.objectRegistry[this.id] = this;

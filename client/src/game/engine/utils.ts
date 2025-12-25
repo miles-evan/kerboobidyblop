@@ -4,8 +4,10 @@ export function mapObj<V>(
 	obj: Record<string, any>,
 	mapperFn: (value: any, key: string, obj: Record<string, any>) => V
 ): Record<string, any> {
-	const result: any = { ...obj };
-	mapObjInPlace(result, mapperFn);
+	const result: any = {};
+	for (const key in obj) {
+		result[key] = mapperFn(obj[key], key, result);
+	}
 	return result;
 }
 

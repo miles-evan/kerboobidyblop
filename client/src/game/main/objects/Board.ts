@@ -4,7 +4,7 @@ import Spell from "./Spell.ts";
 import boardSprite from "../sprites/board.png";
 import type Player from "../castHandlers/Player.ts";
 import Endzone from "./Endzone.ts";
-import GameState from "../../engine/GameState.ts";
+
 
 export default class Board extends GameObject {
 	private readonly player1: Player;

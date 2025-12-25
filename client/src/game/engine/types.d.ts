@@ -9,7 +9,7 @@ declare global {
 		hitboxHeight?: number,
 		originX?: number,
 		originY?: number,
-		includeInGameState?: boolean,
+		snapshotMode?: SnapshotMode,
 	}
 	type AppendableObject = { [key: string]: any };
 	type Constructor<T> = abstract new (...args: any[]) => T;
@@ -37,4 +37,5 @@ declare global {
 		snapshotableClassStatics: Like<ClassStatics>,
 		gameClassStatics: Like<ClassStatics>,
 	};
+	type SnapshotMode = "reference" | "inline";
 }

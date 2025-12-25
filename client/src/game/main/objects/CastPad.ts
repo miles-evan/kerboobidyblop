@@ -11,14 +11,15 @@ import cost6 from "../sprites/cast-pad/cost-6.png";
 import cost7 from "../sprites/cast-pad/cost-7.png";
 import cost8 from "../sprites/cast-pad/cost-8.png";
 import Game from "../../engine/Game.ts";
+import type SnapshotableClosure from "../../engine/SnapshotableClosure.ts";
 
 
 export default class CastPad extends GameObject {
 	
 	hoveredCast: [Tier, Power] = [1, "none"];
-	onCast: (cast: [Tier, Power, Lane]) => any;
+	onCast: SnapshotableClosure<(cast: [Tier, Power, Lane]) => any>;
 	
-	constructor(x: Pixels, y: Pixels, onCast: (cast: [Tier, Power, Lane]) => any) {
+	constructor(x: Pixels, y: Pixels, onCast: SnapshotableClosure<(cast: [Tier, Power, Lane]) => any>) {
 		super(x, y, 64, 64, castPadSprite);
 		
 		this.onCast = onCast;
@@ -32,17 +33,17 @@ export default class CastPad extends GameObject {
 				const costObj = new ShowWhenHoveredOver(x + 16*t, y + 16*p, 16, 16, costSprites[cost - 1] ?? "", () => {
 					this.hoveredCast = [tier, power];
 				});
-				costObj.onClick = () => onCast([tier, power, 0]);
-				costObj.onMiddleClick = () => onCast([tier, power, 1]);
-				costObj.onRightClick = () => onCast([tier, power, 2]);
+				costObj.onClick = () => onCast.run([tier, power, 0]);
+				costObj.onMiddleClick = () => onCast.run([tier, power, 1]);
+				costObj.onRightClick = () => onCast.run([tier, power, 2]);
 			}
 		}
 	}
 	
 	step(): void {
-		if(Game.isKeyPressed("1")) this.onCast([...this.hoveredCast, 0])
-		else if(Game.isKeyPressed("2")) this.onCast([...this.hoveredCast, 1])
-		else if(Game.isKeyPressed("3")) this.onCast([...this.hoveredCast, 2])
+		if(Game.isKeyPressed("1")) this.onCast.run([...this.hoveredCast, 0])
+		else if(Game.isKeyPressed("2")) this.onCast.run([...this.hoveredCast, 1])
+		else if(Game.isKeyPressed("3")) this.onCast.run([...this.hoveredCast, 2])
 	}
 	
 }

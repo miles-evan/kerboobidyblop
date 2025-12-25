@@ -38,7 +38,7 @@ export default class Room1 extends Snapshotable {
 		if(Game.isKeyPressed("Escape") && !Room1.testing) {
 			Room1.testing = true;
 			const snapshot = GameState.snapshot();
-			console.log(snapshot);
+			console.log(JSON.parse(JSON.stringify(snapshot)));
 			setTimeout(() => {
 				GameState.recover(snapshot);
 				Room1.testing = false;

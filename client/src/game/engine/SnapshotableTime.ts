@@ -6,7 +6,7 @@ export default class SnapshotableTime extends Snapshotable {
 	public value: Time;
 	
 	public constructor(time: Time) {
-		super("inline");
+		super("reference");
 		this.value = time;
 	}
 	
