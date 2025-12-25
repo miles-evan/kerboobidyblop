@@ -153,8 +153,6 @@ export default class Spell extends GameObject {
 		
 		if(this.top > Game.screenHeight || this.bottom < 0)
 			this.destroy();
-		
-		if(this.playerNum === 1) console.log("y =", this.y)
 	}
 	
 	

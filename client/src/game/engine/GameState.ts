@@ -44,8 +44,6 @@ export default class GameState {
 	
 	
 	public static recover(snapshot: GameStateSnapshot): void {
-		console.log("recovering...")
-		
 		// remove objects with ids not in the snapshot
 		for(const id of Object.keys(GameState.objectRegistry)) {
 			if(!(id in snapshot.objects))
@@ -69,8 +67,6 @@ export default class GameState {
 		
 		Game.stop();
 		Game.start();
-		
-		console.log("recovered")
 	}
 	
 	
