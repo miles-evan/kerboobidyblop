@@ -7,19 +7,28 @@ export default abstract class Snapshotable {
 	
 	private static nextId: number = 0;
 	
-	public readonly id: number;
+	public readonly id: number | null;
 	public readonly className: string;
 	
-	protected constructor() {
-		this.id = Snapshotable.nextId ++;
-		this.className = new.target.name;
+	
+	// "reference" is the default setting, "inline" means it has no ID, and won't be stored in the list of objects
+	// pick "inline" if it doesn't need to be relinked up, like if its reference isn´t shared. "inline" is helpful
+	// if the garbage collector is wasting a lot of time removing instances of it
+	protected constructor(mode: "reference" | "inline" = "reference") {
+		if(mode === "reference") {
+			this.id = Snapshotable.nextId ++;
+			GameState.objectRegistry[this.id] = this;
+		} else {
+			this.id = null;
+		}
 		
-		GameState.objectRegistry[this.id] = this;
+		this.className = new.target.name;
 		GameState.constructorRegistry[this.className] = new.target;
 	}
 	
+	
 	public destroy(): void {
-		delete GameState.objectRegistry[this.id];
+		if(this.id !== null) delete GameState.objectRegistry[this.id];
 	}
 	
 	
@@ -36,7 +45,9 @@ export default abstract class Snapshotable {
 	
 	private static snapshotData(data: any): any {
 		if(data instanceof Snapshotable) {
-			return { "$-SNAPSHOTABLE_ID": data.id, "$-CLASS_NAME": data.className };
+			const result = { "$-SNAPSHOTABLE_ID": data.id, "$-CLASS_NAME": data.className };
+			if(data.id === null) Object.assign(result, data); // inline snapshotable
+			return result;
 		} else if(data instanceof Element) {
 			return { "$-HTML_ELEMENT": data.outerHTML };
 		} else if(Array.isArray(data)) {
@@ -62,17 +73,12 @@ export default abstract class Snapshotable {
 	
 	public static recoverSnapshotable(objectSnapshot: Like<Snapshotable>): void {
 		const id = objectSnapshot.id;
-		if(id in GameState.objectRegistry) {
+		if(id !== null && id in GameState.objectRegistry) {
 			const obj: Snapshotable = GameState.objectRegistry[id]!;
-			// delete obj["$-debug"];
 			obj.recoverReplace(objectSnapshot);
 		} else {
-			if(!(objectSnapshot.className in GameState.constructorRegistry)) {
-				for(const key in objectSnapshot) {
-					console.log(key);
-				}
+			if(!(objectSnapshot.className in GameState.constructorRegistry))
 				throw new Error(`class ${objectSnapshot.className} not registered. ${objectSnapshot.id}`)
-			}
 			const ctor = GameState.constructorRegistry[objectSnapshot.className]!;
 			ctor.recoverCreate(objectSnapshot); // manually do dynamic method dispatch since class is lost
 		}
@@ -87,26 +93,34 @@ export default abstract class Snapshotable {
 	}
 	
 	protected static recoverCreate(objectSnapshot: Like<Snapshotable>): Snapshotable {
-		const obj: Snapshotable = Snapshotable.stubOutAndRegister(objectSnapshot.id, objectSnapshot.className);
-		// delete obj["$-debug"];
+		const obj: Snapshotable = Snapshotable.stubOutAndRegister(objectSnapshot.id!, objectSnapshot.className);
 		objectSnapshot = Snapshotable.expandAndLink(objectSnapshot);
 		Object.assign(obj, objectSnapshot);
 		return obj;
 	}
 	
 	private static stubOutAndRegister(id: number, className: string): Snapshotable {
-		const ctor = GameState.constructorRegistry[className]!;
-		const obj: Snapshotable = Object.create(ctor.prototype);
-		Object.assign(obj, { id, className, /*"$-debug": "i was stubbed"*/ });
+		const obj: Snapshotable = Snapshotable.stubOut(className);
 		GameState.objectRegistry[id] = obj;
 		return obj;
+	}
+	
+	private static stubOut(className: string): Snapshotable {
+		const ctor = GameState.constructorRegistry[className]!;
+		return Object.create(ctor.prototype);
 	}
 	
 	public static expandAndLink(snapshotData: any): any {
 		if(typeof snapshotData !== "object" || snapshotData === null) { // primitive
 			return snapshotData;
 		} else if("$-SNAPSHOTABLE_ID" in snapshotData) {
-			const id: number = snapshotData["$-SNAPSHOTABLE_ID"];
+			const id: number | null = snapshotData["$-SNAPSHOTABLE_ID"];
+			if(id === null) { // inline snapshotable
+				const obj: Snapshotable = Snapshotable.stubOut(snapshotData.className);
+				delete snapshotData["$-SNAPSHOTABLE_ID"]; delete snapshotData["$-CLASS_NAME"];
+				Object.assign(obj, snapshotData);
+				return obj;
+			}
 			if(id in GameState.objectRegistry) return GameState.objectRegistry[id];
 			const className = snapshotData["$-CLASS_NAME"];
 			return Snapshotable.stubOutAndRegister(id, className);
@@ -138,7 +152,7 @@ export default abstract class Snapshotable {
 	}
 	
 	private static cleanData(data: any, validIds: Set<number>, idsFound: Set<number>): any {
-		if(data instanceof Snapshotable) {
+		if(data instanceof Snapshotable && data.id !== null) {
 			idsFound.add(data.id); // for garbage collection
 			return validIds.has(data.id)? data : null; // dangling reference removal
 		} else if(data instanceof Element) {

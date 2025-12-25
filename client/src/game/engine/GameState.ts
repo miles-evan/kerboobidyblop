@@ -1,8 +1,10 @@
 import Snapshotable from "./Snapshotable.ts";
 import Game from "./Game.ts";
 
+
 // keeps track of all Snapshotables. can create snapshots
 export default class GameState {
+	
 	public static readonly objectRegistry: Record<number, Snapshotable> = {}; // id -> object
 	public static readonly constructorRegistry: Record<string, typeof Snapshotable> = {}; // class name -> constructor
 	
@@ -21,19 +23,19 @@ export default class GameState {
 	public static snapshot(): GameStateSnapshot {
 		GameState.clean();
 		
-		// objects
+		// snapshot objects
 		const objects: Record<number, Like<Snapshotable>> = { ...GameState.objectRegistry };
 		for(const id in objects) {
 			objects[id] = (objects[id] as Snapshotable).snapshot();
 		}
 		
-		// classes
+		// snapshot classes
 		const classStatics: Record<string, ClassStatics> = { ...GameState.constructorRegistry };
 		for(const className in classStatics) {
 			classStatics[className] = Snapshotable.snapshotClassStatics(classStatics[className]!);
 		}
 		
-		// other classes
+		// snapshot other classes
 		const snapshotableClassStatics: ClassStatics = Snapshotable.snapshotClassStatics(Snapshotable);
 		const gameClassStatics: ClassStatics = Snapshotable.snapshotClassStatics(Game);
 		
@@ -42,17 +44,16 @@ export default class GameState {
 	
 	
 	public static recover(snapshot: GameStateSnapshot): void {
-		// objects
+		// remove objects with ids not in the snapshot
 		for(const id of Object.keys(GameState.objectRegistry)) {
 			if(!(id in snapshot.objects))
 				GameState.objectRegistry[id as unknown as number]!.destroy();
 		}
-		Object.values(snapshot.objects).forEach(object => {
-			console.log(object);
-			Snapshotable.recoverSnapshotable(object);
-		});
 		
-		// classes
+		// recover objects
+		Object.values(snapshot.objects).forEach(Snapshotable.recoverSnapshotable);
+		
+		// recover classes
 		for(const className in GameState.constructorRegistry) {
 			Snapshotable.recoverClassStatics(
 				GameState.constructorRegistry[className]!,
@@ -60,7 +61,7 @@ export default class GameState {
 			);
 		}
 		
-		// other classes
+		// recover other classes
 		Snapshotable.recoverClassStatics(Snapshotable, snapshot.snapshotableClassStatics);
 		Snapshotable.recoverClassStatics(Game, snapshot.gameClassStatics);
 		
@@ -71,7 +72,8 @@ export default class GameState {
 	
 	// does both garbage collection (mark and sweep) and dangling reference removal (sets to null)
 	public static clean(): void {
-		const validIds: Set<number> = new Set(Object.values(GameState.objectRegistry).map(obj => obj.id));
+		const validIds: Set<number> =
+			new Set(Object.values(GameState.objectRegistry).flatMap(obj => obj.id? [obj.id] : []));
 		const idsFound: Set<number> = new Set();
 		
 		// objects
@@ -89,12 +91,10 @@ export default class GameState {
 		
 		// garbage collection
 		for(const id of Object.keys(GameState.objectRegistry)) {
-			if(!idsFound.has(Number(id))) {
-				console.log(`garbage collecting ${id}`)
+			if(!idsFound.has(Number(id)))
 				GameState.objectRegistry[id as unknown as number]!.destroy();
-				if(id in GameState.objectRegistry) console.log("HOW THE FUCK IS ID STILL IN THERE")
-			}
 		}
 	}
+	
 }
 
