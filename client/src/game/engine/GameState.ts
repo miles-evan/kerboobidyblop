@@ -72,8 +72,7 @@ export default class GameState {
 	
 	// does both garbage collection (mark and sweep) and dangling reference removal (sets to null)
 	public static clean(): void {
-		const validIds: Set<number> =
-			new Set(Object.values(GameState.objectRegistry).flatMap(obj => obj.id? [obj.id] : []));
+		const validIds: Set<number> = new Set(Object.values(GameState.objectRegistry).map(obj => obj.id));
 		const idsFound: Set<number> = new Set();
 		
 		// objects

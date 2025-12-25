@@ -7,7 +7,7 @@ export default abstract class Snapshotable {
 	
 	private static nextId: number = 0;
 	
-	public readonly id: number | null;
+	public readonly id: number; // -1 if inline snapshotable
 	public readonly className: string;
 	
 	
@@ -19,7 +19,7 @@ export default abstract class Snapshotable {
 			this.id = Snapshotable.nextId ++;
 			GameState.objectRegistry[this.id] = this;
 		} else {
-			this.id = null;
+			this.id = -1;
 		}
 		
 		this.className = new.target.name;
@@ -28,7 +28,7 @@ export default abstract class Snapshotable {
 	
 	
 	public destroy(): void {
-		if(this.id !== null) delete GameState.objectRegistry[this.id];
+		if(this.id !== -1) delete GameState.objectRegistry[this.id];
 	}
 	
 	
@@ -46,7 +46,7 @@ export default abstract class Snapshotable {
 	private static snapshotData(data: any): any {
 		if(data instanceof Snapshotable) {
 			const result = { "$-SNAPSHOTABLE_ID": data.id, "$-CLASS_NAME": data.className };
-			if(data.id === null) Object.assign(result, data); // inline snapshotable
+			if(data.id === -1) Object.assign(result, data); // inline snapshotable
 			return result;
 		} else if(data instanceof Element) {
 			return { "$-HTML_ELEMENT": data.outerHTML };
@@ -73,7 +73,7 @@ export default abstract class Snapshotable {
 	
 	public static recoverSnapshotable(objectSnapshot: Like<Snapshotable>): void {
 		const id = objectSnapshot.id;
-		if(id !== null && id in GameState.objectRegistry) {
+		if(id !== -1 && id in GameState.objectRegistry) {
 			const obj: Snapshotable = GameState.objectRegistry[id]!;
 			obj.recoverReplace(objectSnapshot);
 		} else {
@@ -114,8 +114,8 @@ export default abstract class Snapshotable {
 		if(typeof snapshotData !== "object" || snapshotData === null) { // primitive
 			return snapshotData;
 		} else if("$-SNAPSHOTABLE_ID" in snapshotData) {
-			const id: number | null = snapshotData["$-SNAPSHOTABLE_ID"];
-			if(id === null) { // inline snapshotable
+			const id: number = snapshotData["$-SNAPSHOTABLE_ID"];
+			if(id === -1) { // inline snapshotable
 				const obj: Snapshotable = Snapshotable.stubOut(snapshotData.className);
 				delete snapshotData["$-SNAPSHOTABLE_ID"]; delete snapshotData["$-CLASS_NAME"];
 				Object.assign(obj, snapshotData);
@@ -152,7 +152,7 @@ export default abstract class Snapshotable {
 	}
 	
 	private static cleanData(data: any, validIds: Set<number>, idsFound: Set<number>): any {
-		if(data instanceof Snapshotable && data.id !== null) {
+		if(data instanceof Snapshotable && data.id !== -1) {
 			idsFound.add(data.id); // for garbage collection
 			return validIds.has(data.id)? data : null; // dangling reference removal
 		} else if(data instanceof Element) {
