@@ -4,7 +4,7 @@ import Screen from "./components/Screen.tsx"
 export default function App() {
 	return (
 		<div style={{ display: "flex", flexDirection: "row-reverse" }}>
-			<h1 style={{ maxHeight: "20vh" }}>Kerboobidyblop 5</h1>
+			<h1 style={{ maxHeight: "20vh" }}>Kerboobidyblop 6</h1>
 			<Screen/>
 		</div>
 	);

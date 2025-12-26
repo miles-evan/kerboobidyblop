@@ -32,9 +32,9 @@ export default abstract class GameObject extends Snapshotable {
 	
 	protected constructor(
 		x: Pixels = 0, y: Pixels = 0, width: Pixels = 0, height: Pixels = 0, sprite: string = "",
-		{ hitboxWidth, hitboxHeight, originX=0, originY=0, snapshotMode }: ObjectOptions = {}
+		{ hitboxWidth, hitboxHeight, originX=0, originY=0 }: ObjectOptions = {}
 	) {
-		super(snapshotMode);
+		super();
 		
 		this.__object = document.createElement("div");
 		this.__object.style.position = "absolute"

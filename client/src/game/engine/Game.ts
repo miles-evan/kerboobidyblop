@@ -26,6 +26,8 @@ export default class Game {
 	static #onKeyUp: (e: KeyboardEvent) => void;
 	static #onTouchStart: (e: TouchEvent) => void;
 	static #onTouchEnd: (e: TouchEvent) => void;
+	static #onMouseDown: (e: MouseEvent) => void;
+	static #onMouseUp: (e: MouseEvent) => void;
 	static #onMouseMove: (e: MouseEvent) => void;
 	private static _frameCount: number = 0;
 	public static globalSteps: Array<AnyFunction | SnapshotableClosure> = [];
@@ -45,20 +47,28 @@ export default class Game {
 		screen.style.position = "relative";
 		screen.addEventListener("contextmenu", e => e.preventDefault());
 		
-		Game.#onKeyDown = (e: KeyboardEvent): void => {
+		Game.#onKeyDown = e => {
 			if(!(e.key in Game.keysDown))
-				Game.keysDown[e.key as Key] = SnapshotableTime.now();
+				Game.keysDown[e.key] = SnapshotableTime.now();
 		};
-		Game.#onKeyUp = (e: KeyboardEvent): void => {
-			delete Game.keysDown[e.key as Key];
+		Game.#onKeyUp = e => {
+			delete Game.keysDown[e.key];
 		};
-		Game.#onTouchStart = (): void => {
+		Game.#onTouchStart = () => {
 			if(!("touch" in Game.keysDown))
 				Game.keysDown["touch"] = SnapshotableTime.now();
 		};
-		Game.#onTouchEnd = (): void => {
+		Game.#onTouchEnd = () => {
 			delete Game.keysDown["touch"];
 		};
+		const clickMap: Record<number, string> = { 0: "left-click", 1: "middle-click", 2: "right-click" } // todo add more
+		Game.#onMouseDown = e => {
+			if(!(clickMap[e.button]! in Game.keysDown))
+				Game.keysDown[clickMap[e.button]!] = SnapshotableTime.now();
+		}
+		Game.#onMouseUp = e => {
+			delete Game.keysDown[clickMap[e.button]!];
+		}
 		Game.#onMouseMove = (e: MouseEvent): void => {
 			const rect: DOMRect = screen.getBoundingClientRect();
 			Game.mouseX = (e.clientX - rect.left) / Game.virtualScreenSizeMultiplier;
@@ -68,6 +78,8 @@ export default class Game {
 		window.addEventListener("keyup", Game.#onKeyUp);
 		screen.addEventListener("touchstart", Game.#onTouchStart);
 		screen.addEventListener("touchend", Game.#onTouchEnd);
+		screen.addEventListener("mousedown", Game.#onMouseDown);
+		screen.addEventListener("mouseup", Game.#onMouseUp);
 		screen.addEventListener('mousemove', Game.#onMouseMove);
 		
 		return true;
@@ -81,6 +93,8 @@ export default class Game {
 		window.removeEventListener("keyup", Game.#onKeyUp);
 		Game.#screen.removeEventListener("touchstart", Game.#onTouchStart);
 		Game.#screen.removeEventListener("touchend", Game.#onTouchEnd);
+		Game.#screen.removeEventListener("mousedown", Game.#onMouseDown);
+		Game.#screen.removeEventListener("mouseup", Game.#onMouseUp);
 		Game.#screen.removeEventListener("mousemove", Game.#onMouseMove);
 		Game.#screen = null;
 		GameState.destroyAllObjects();

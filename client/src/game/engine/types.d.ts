@@ -9,14 +9,13 @@ declare global {
 		hitboxHeight?: number,
 		originX?: number,
 		originY?: number,
-		snapshotMode?: SnapshotMode,
 	}
 	type AppendableObject = { [key: string]: any };
 	type Constructor<T> = abstract new (...args: any[]) => T;
 	type GameObjectClass = Constructor<GameObject>;
 	type SnapshotableClass = Constructor<Snapshotable>;
 	type ClassStatics = Record<string, any>; // because TS complains about Constructor<> if it's a protected constructor
-	type Key = KeyboardEvent["key"] | "touch";
+	type Key = KeyboardEvent["key"] | "touch" | "left-click" | "middle-click" | "right-click";
 	type AnyFunction = (...args: any[]) => any;
 	type RepeatableId = number;
 	type Hertz = number;

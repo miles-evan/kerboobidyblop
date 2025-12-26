@@ -11,15 +11,15 @@ import cost6 from "../sprites/cast-pad/cost-6.png";
 import cost7 from "../sprites/cast-pad/cost-7.png";
 import cost8 from "../sprites/cast-pad/cost-8.png";
 import Game from "../../engine/Game.ts";
-import type SnapshotableClosure from "../../engine/SnapshotableClosure.ts";
+import SnapshotableClosure from "../../engine/SnapshotableClosure.ts";
 
 
 export default class CastPad extends GameObject {
 	
-	hoveredCast: [Tier, Power] = [1, "none"];
-	onCast: SnapshotableClosure<(cast: [Tier, Power, Lane]) => any>;
+	private hoveredCast: [Tier, Power] = [1, "none"];
+	private onCast: SnapshotableClosure<(cast: [Tier, Power, Lane]) => any>;
 	
-	constructor(x: Pixels, y: Pixels, onCast: SnapshotableClosure<(cast: [Tier, Power, Lane]) => any>) {
+	public constructor(x: Pixels, y: Pixels, onCast: SnapshotableClosure<(cast: [Tier, Power, Lane]) => any>) {
 		super(x, y, 64, 64, castPadSprite);
 		
 		this.onCast = onCast;
@@ -30,20 +30,22 @@ export default class CastPad extends GameObject {
 				const tier: Tier = t + 1 as Tier;
 				const power: Power = ["dodger", "retreater", "hopper", "none"][p] as Power;
 				const cost: Flux = Spell.fluxCost(tier, power);
-				const costObj = new ShowWhenHoveredOver(x + 16*t, y + 16*p, 16, 16, costSprites[cost - 1] ?? "", () => {
-					this.hoveredCast = [tier, power];
-				});
-				costObj.onClick = () => onCast.run([tier, power, 0]);
-				costObj.onMiddleClick = () => onCast.run([tier, power, 1]);
-				costObj.onRightClick = () => onCast.run([tier, power, 2]);
+				new ShowWhenHoveredOver(
+					x + 16*t, y + 16*p, 16, 16, costSprites[cost - 1] ?? "",
+					new SnapshotableClosure(this, this.setHoveredCast), [[tier, power]],
+				);
 			}
 		}
 	}
 	
-	step(): void {
-		if(Game.isKeyPressed("1")) this.onCast.run([...this.hoveredCast, 0])
-		else if(Game.isKeyPressed("2")) this.onCast.run([...this.hoveredCast, 1])
-		else if(Game.isKeyPressed("3")) this.onCast.run([...this.hoveredCast, 2])
+	private setHoveredCast(hoveredCast: [Tier, Power]) {
+		this.hoveredCast = hoveredCast;
+	}
+	
+	public step(): void {
+		if(Game.isKeyPressed("1") || Game.isKeyPressed("left-click")) this.onCast.run([...this.hoveredCast, 0])
+		else if(Game.isKeyPressed("2") || Game.isKeyPressed("middle-click")) this.onCast.run([...this.hoveredCast, 1])
+		else if(Game.isKeyPressed("3") || Game.isKeyPressed("right-click")) this.onCast.run([...this.hoveredCast, 2])
 	}
 	
 }
