@@ -1,6 +1,6 @@
 import { type ReactElement, useEffect, useRef } from "react";
 import Game from "../game/engine/Game.ts";
-import room1 from "../game/main/rooms/room1.ts";
+import Room1 from "../game/main/rooms/room1.ts";
 
 export default function Screen({ children }: { children?: ReactElement }) {
 	
@@ -13,7 +13,7 @@ export default function Screen({ children }: { children?: ReactElement }) {
 		if(!screenRef.current) return cleanup;
 		if(!Game.init(screenRef.current)) return cleanup;
 		if(!Game.start()) return cleanup;
-		room1();
+		Room1.load();
 		
 		return cleanup;
 	}, []);

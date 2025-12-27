@@ -11,14 +11,16 @@ import cost6 from "../sprites/cast-pad/cost-6.png";
 import cost7 from "../sprites/cast-pad/cost-7.png";
 import cost8 from "../sprites/cast-pad/cost-8.png";
 import Game from "../../engine/Game.ts";
+import SnapshotableClosure from "../../engine/SnapshotableClosure.ts";
 
 
 export default class CastPad extends GameObject {
 	
-	hoveredCast: [Tier, Power] = [1, "none"];
-	onCast: (cast: [Tier, Power, Lane]) => any;
+	private hoveredCast: [Tier, Power] | null = null;
+	private onCast: SnapshotableClosure<(cast: [Tier, Power, Lane]) => any>;
+	private justSetCast: boolean = false; // so that if hoveredCast is set twice in the same frame, it takes the non-null one
 	
-	constructor(x: Pixels, y: Pixels, onCast: (cast: [Tier, Power, Lane]) => any) {
+	public constructor(x: Pixels, y: Pixels, onCast: SnapshotableClosure<(cast: [Tier, Power, Lane]) => any>) {
 		super(x, y, 64, 64, castPadSprite);
 		
 		this.onCast = onCast;
@@ -29,20 +31,27 @@ export default class CastPad extends GameObject {
 				const tier: Tier = t + 1 as Tier;
 				const power: Power = ["dodger", "retreater", "hopper", "none"][p] as Power;
 				const cost: Flux = Spell.fluxCost(tier, power);
-				const costObj = new ShowWhenHoveredOver(x + 16*t, y + 16*p, 16, 16, costSprites[cost - 1] ?? "", () => {
-					this.hoveredCast = [tier, power];
-				});
-				costObj.onClick = () => onCast([tier, power, 0]);
-				costObj.onMiddleClick = () => onCast([tier, power, 1]);
-				costObj.onRightClick = () => onCast([tier, power, 2]);
+				new ShowWhenHoveredOver(
+					x + 16*t, y + 16*p, 16, 16, costSprites[cost - 1] ?? "",
+					new SnapshotableClosure(this, this.setHoveredCast, [tier, power]),
+					new SnapshotableClosure(this, this.setHoveredCast, null),
+				);
 			}
 		}
 	}
 	
-	step(): void {
-		if(Game.isKeyPressed("1")) this.onCast([...this.hoveredCast, 0])
-		else if(Game.isKeyPressed("2")) this.onCast([...this.hoveredCast, 1])
-		else if(Game.isKeyPressed("3")) this.onCast([...this.hoveredCast, 2])
+	private setHoveredCast(hoveredCast: [Tier, Power] | null) {
+		if(hoveredCast !== null || !this.justSetCast)
+			this.hoveredCast = hoveredCast;
+		this.justSetCast = true;
+	}
+	
+	public step(): void {
+		this.justSetCast = false;
+		if(this.hoveredCast === null) return;
+		if(Game.isKeyPressed("1") || Game.isKeyPressed("left-click")) this.onCast.run([...this.hoveredCast, 0]);
+		else if(Game.isKeyPressed("2") || Game.isKeyPressed("middle-click")) this.onCast.run([...this.hoveredCast, 1]);
+		else if(Game.isKeyPressed("3") || Game.isKeyPressed("right-click")) this.onCast.run([...this.hoveredCast, 2]);
 	}
 	
 }

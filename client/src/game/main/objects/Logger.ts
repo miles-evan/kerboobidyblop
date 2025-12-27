@@ -11,7 +11,7 @@ export default class Logger extends GameObject {
 	}
 	
 	step(): void {
-		this._object.textContent = String(this.value());
+		this.__object.textContent = String(this.value());
 	}
 	
 }

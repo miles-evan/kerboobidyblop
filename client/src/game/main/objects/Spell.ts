@@ -2,9 +2,17 @@ import GameObject from "../../engine/GameObject.ts";
 import Game from "../../engine/Game.ts";
 import SpellTrail from "./SpellTrail.ts";
 import type Board from "./Board.ts";
+import SnapshotableClosure from "../../engine/SnapshotableClosure.ts";
+import SnapshotableTime from "../../engine/SnapshotableTime.ts";
+import GameState from "../../engine/GameState.ts";
 
 
 export default class Spell extends GameObject {
+	
+	private static readonly secondsPerTile: Seconds = 1.5;
+	private static readonly velocity: PixelsPerSecond = 16 / Spell.secondsPerTile;
+	private static tileTickRepeatableId: RepeatableId | null = null;
+	private static lastTileTickTime: SnapshotableTime = new SnapshotableTime(0);
 	
 	public lane: Lane;
 	public readonly tier: Tier; // the spell's number
@@ -13,10 +21,8 @@ export default class Spell extends GameObject {
 	public board: Board;
 	private readonly trailRepeatableId: RepeatableId;
 	
-	private static readonly secondsPerTile: Seconds = 1.5;
-	private static readonly velocity: PixelsPerSecond = 16 / Spell.secondsPerTile;
-	private static tileTickRepeatableId: RepeatableId | null = null;
-	private static lastTileTickTime: Time = 0;
+	// register constructor
+	static { GameState.registerConstructor(Spell); }
 	
 	public constructor(x: Pixels, y: Pixels, lane: Lane, tier: Tier, playerNum: PlayerNum, power: Power = "none", board: Board) {
 		super(x, y, 16, 16, `/src/game/main/sprites/spells/spell-player${playerNum}-tier${tier}.png`);
@@ -26,28 +32,34 @@ export default class Spell extends GameObject {
 		this.power = power;
 		this.board = board;
 		
-		this.trailRepeatableId = Game.addRepeatable(() => {
-			if(this.yVelocity)
-				new SpellTrail(this.x, this.y, this.power)
-		}, Spell.velocity / 2);
+		this.trailRepeatableId = Game.addRepeatable(new SnapshotableClosure(this, this.spawnTrail), Spell.velocity / 2);
 	}
 	
 	
 	// call once to sync
 	public static syncTiles(): void {
 		Game.removeRepeatable(Spell.tileTickRepeatableId);
-		Spell.tileTickRepeatableId = Game.addRepeatable(() => {
-			Spell.lastTileTickTime = Date.now();
-		}, Spell.velocity / 16);
+		Spell.tileTickRepeatableId = Game.addRepeatable(
+			new SnapshotableClosure(Spell, Spell.updateLastTileTickTime),
+			Spell.velocity / 16
+		);
 	}
 	
 	private static onTileTick(): boolean {
-		return Game.justHappened(Spell.lastTileTickTime);
+		return Game.justHappened(Spell.lastTileTickTime.value);
 	}
 
 
 	public static fluxCost(tier: Tier, power: Power): Flux {
 		return tier * (power === "none"? 1 : 2);
+	}
+	
+	private spawnTrail(): void {
+		if(this.yVelocity) new SpellTrail(this.x, this.y, this.power);
+	}
+	
+	private static updateLastTileTickTime(): void {
+		Spell.lastTileTickTime = SnapshotableTime.now();
 	}
 	
 	// returns true if this kills collider

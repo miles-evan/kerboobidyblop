@@ -1,37 +1,50 @@
 import GameObject from "./GameObject.ts";
+import SnapshotableClosure from "./SnapshotableClosure.ts";
+import Repeatable from "./Repeatable.ts";
+import GameState from "./GameState.ts";
+import SnapshotableTime from "./SnapshotableTime.ts";
+import Snapshotable from "./Snapshotable.ts";
 
 
-export default class Game {
-	static _gameObjects: GameObject[] = [];
-	static instanceCount: number = 0;
-	static _instanceCounts: Record<string, number> = {};
-	static maxFrameRate: FramesPerSecond = 60;
-	static isRunning: boolean = false;
-	static _screen: HTMLElement | null;
-	static screenWidth: Pixels;
-	static screenHeight: Pixels;
-	static mouseX: Pixels;
-	static mouseY: Pixels;
-	static lockPositionsToVirtualPixels: boolean = false;
-	private static keysDown: Record<Key, Time> = {};
-	private static lastFrameTimeStamp: Time = 0;
-	private static currentFrameTimeStamp: Time = 0;
+export default class Game extends Snapshotable {
+	// naming scheme: regularField, _backingField, __avoidUsingUnlessYouHaveToField, #excludedFromStateField
+	public static __gameObjects: GameObject[] = [];
+	public static instanceCount: number = 0;
+	private static _instanceCounts: Record<string, number> = {}; // type -> count
+	public static maxFrameRate: FramesPerSecond = 60;
+	public static isRunning: boolean = false;
+	static #screen: HTMLElement | null;
+	public static screenWidth: Pixels;
+	public static screenHeight: Pixels;
+	public static mouseX: Pixels;
+	public static mouseY: Pixels;
+	public static lockPositionsToVirtualPixels: boolean = false;
+	private static keysDown: Record<Key, SnapshotableTime> = {};
+	private static lastFrameTimeStamp: SnapshotableTime = new SnapshotableTime(0);
+	private static currentFrameTimeStamp: SnapshotableTime = new SnapshotableTime(0);
 	private static timeoutId: number | null = null;
-	private static onKeyDown: (e: KeyboardEvent) => void;
-	private static onKeyUp: (e: KeyboardEvent) => void;
-	private static onTouchStart: (e: TouchEvent) => void;
-	private static onTouchEnd: (e: TouchEvent) => void;
-	private static onMouseMove: (e: MouseEvent) => void;
-	static #frameCount: number = 0;
-	static globalSteps: AnyFunction[] = [];
-	static #timeStart: Time = 0;
-	private static preloadedImages: Record<string, HTMLImageElement> = {};
+	static #onKeyDown: (e: KeyboardEvent) => void;
+	static #onKeyUp: (e: KeyboardEvent) => void;
+	static #onTouchStart: (e: TouchEvent) => void;
+	static #onTouchEnd: (e: TouchEvent) => void;
+	static #onMouseDown: (e: MouseEvent) => void;
+	static #onMouseUp: (e: MouseEvent) => void;
+	static #onMouseMove: (e: MouseEvent) => void;
+	private static _frameCount: number = 0;
+	public static globalSteps: Array<AnyFunction | SnapshotableClosure> = [];
+	private static timeStart: SnapshotableTime = new SnapshotableTime(0);
+	static #preloadedImages: Record<string, HTMLImageElement> = {};
+	public static _repeatables: Record<number, Repeatable> = {}; // id -> repeatable
 	
 	
-	static init(screen: HTMLElement): boolean {
-		if(Game._screen) return false;
+	// register constructor
+	static { GameState.registerConstructor(Game); }
+	
+	
+	public static init(screen: HTMLElement): boolean {
+		if(Game.#screen) return false;
 		
-		Game._screen = screen;
+		Game.#screen = screen;
 		Game.screenWidth = screen.clientWidth;
 		Game.screenHeight = screen.clientHeight;
 		screen.style.position = "relative";
@@ -39,76 +52,98 @@ export default class Game {
 		screen.style.position = "relative";
 		screen.addEventListener("contextmenu", e => e.preventDefault());
 		
-		Game.onKeyDown = (e: KeyboardEvent): void => {
+		Game.#onKeyDown = e => {
 			if(!(e.key in Game.keysDown))
-				Game.keysDown[e.key as Key] = Date.now();
+				Game.keysDown[e.key] = SnapshotableTime.now();
 		};
-		Game.onKeyUp = (e: KeyboardEvent): void => {
-			delete Game.keysDown[e.key as Key];
+		Game.#onKeyUp = e => {
+			delete Game.keysDown[e.key];
 		};
-		Game.onTouchStart = (): void => {
+		Game.#onTouchStart = () => {
 			if(!("touch" in Game.keysDown))
-				Game.keysDown["touch"] = Date.now();
+				Game.keysDown["touch"] = SnapshotableTime.now();
 		};
-		Game.onTouchEnd = (): void => {
+		Game.#onTouchEnd = () => {
 			delete Game.keysDown["touch"];
 		};
-		Game.onMouseMove = (e: MouseEvent): void => {
+		const clickMap: Record<number, string> = { 0: "left-click", 1: "middle-click", 2: "right-click" } // todo add more
+		Game.#onMouseDown = e => {
+			if(!(clickMap[e.button]! in Game.keysDown))
+				Game.keysDown[clickMap[e.button]!] = SnapshotableTime.now();
+		}
+		Game.#onMouseUp = e => {
+			delete Game.keysDown[clickMap[e.button]!];
+		}
+		Game.#onMouseMove = (e: MouseEvent): void => {
 			const rect: DOMRect = screen.getBoundingClientRect();
 			Game.mouseX = (e.clientX - rect.left) / Game.virtualScreenSizeMultiplier;
 			Game.mouseY = (e.clientY - rect.top) / Game.virtualScreenSizeMultiplier;
 		}
-		window.addEventListener("keydown", Game.onKeyDown);
-		window.addEventListener("keyup", Game.onKeyUp);
-		screen.addEventListener("touchstart", Game.onTouchStart);
-		screen.addEventListener("touchend", Game.onTouchEnd);
-		screen.addEventListener('mousemove', Game.onMouseMove);
+		window.addEventListener("keydown", Game.#onKeyDown);
+		window.addEventListener("keyup", Game.#onKeyUp);
+		screen.addEventListener("touchstart", Game.#onTouchStart);
+		screen.addEventListener("touchend", Game.#onTouchEnd);
+		screen.addEventListener("mousedown", Game.#onMouseDown);
+		screen.addEventListener("mouseup", Game.#onMouseUp);
+		screen.addEventListener('mousemove', Game.#onMouseMove);
 		
 		return true;
 	}
 	
-	static destroy(): boolean {
+	// destroys all objects and cleans things up
+	public static destroy(): boolean {
 		Game.stop();
-		if(!Game._screen) return false;
-		window.removeEventListener("keydown", Game.onKeyDown);
-		window.removeEventListener("keyup", Game.onKeyUp);
-		Game._screen.removeEventListener("touchstart", Game.onTouchStart);
-		Game._screen.removeEventListener("touchend", Game.onTouchEnd);
-		Game._screen.removeEventListener("mousemove", Game.onMouseMove);
-		Game._screen = null;
-		Game._gameObjects.forEach(gameObject => gameObject.destroy());
-		Game._gameObjects = [];
+		if(!Game.#screen) return false;
+		window.removeEventListener("keydown", Game.#onKeyDown);
+		window.removeEventListener("keyup", Game.#onKeyUp);
+		Game.#screen.removeEventListener("touchstart", Game.#onTouchStart);
+		Game.#screen.removeEventListener("touchend", Game.#onTouchEnd);
+		Game.#screen.removeEventListener("mousedown", Game.#onMouseDown);
+		Game.#screen.removeEventListener("mouseup", Game.#onMouseUp);
+		Game.#screen.removeEventListener("mousemove", Game.#onMouseMove);
+		Game.#screen = null;
+		GameState.destroyAllObjects();
+		Game.__gameObjects = [];
 		Game._instanceCounts = {};
 		Game.instanceCount = 0;
+		Game.globalSteps = [];
+		Game._repeatables = {};
 		return true;
 	}
 	
 	
-	static _appendGameObject(gameObject: GameObject): void {
+	public static __appendGameObject(gameObject: GameObject): void {
 		Game.instanceCount ++;
 		Game._instanceCounts[gameObject.constructor.name] =
 			1 + (Game._instanceCounts[gameObject.constructor.name] ?? 0);
-		Game._gameObjects.push(gameObject);
+		Game.__gameObjects.push(gameObject);
+		if(!Game.#screen) throw new Error("Must initialize screen");
+		Game.#screen.append(gameObject.__object);
 	}
 	
-	static _popGameObject(gameObject: GameObject): void {
+	public static __popGameObject(gameObject: GameObject): void {
 		Game.instanceCount --;
 		Game._instanceCounts[gameObject.constructor.name] =
 			-1 + (Game._instanceCounts[gameObject.constructor.name] ?? 0);
-		gameObject._object.remove();
-		Game._gameObjects = Game._gameObjects.filter(element => element !== gameObject);
+		Game.__gameObjects = Game.__gameObjects.filter(element => element !== gameObject);
 	}
 	
 	
-	static start(): boolean {
+	public static __appendHTMLElementToScreen(el: Element) {
+		if(!Game.#screen) throw new Error("Must initialize screen");
+		Game.#screen.append(el);
+	}
+	
+	
+	public static start(): boolean {
 		if(Game.isRunning) return false;
 		Game.isRunning = true;
-		Game.#timeStart = Date.now();
-		Game.doSteps();
+		Game.timeStart = SnapshotableTime.now();
+		Game.step();
 		return true;
 	}
 	
-	static stop(): void {
+	public static stop(): void {
 		Game.isRunning = false;
 		if(Game.timeoutId) {
 			clearTimeout(Game.timeoutId);
@@ -117,25 +152,24 @@ export default class Game {
 	}
 	
 	
-	static objectCollidedWithType(
-		gameObject: GameObject, type: Constructor<GameObject>, x?: Pixels, y?: Pixels
+	public static objectCollidedWithType(
+		gameObject: GameObject, type: GameObjectClass, x?: Pixels, y?: Pixels
 	): boolean {
-		
 		return gameObject.withTempPosition(x, y, () => {
-			return Game._gameObjects.some(other =>
+			return Game.__gameObjects.some(other =>
 				other instanceof type
 				&& gameObject !== other
 				&& gameObject.collidedWith(other));
 		})
 	}
 	
-	static getObjectsCollisionsWithType<T extends GameObject>(
+	public static getObjectsCollisionsWithType<T extends GameObject>(
 		gameObject: GameObject, type: Constructor<T>, x?: Pixels, y?: Pixels
 	): T[] {
 		
 		return gameObject.withTempPosition(x, y, () => {
 			const objectsCollidedWith: T[] = [];
-			Game._gameObjects.forEach(other => {
+			Game.__gameObjects.forEach(other => {
 				if(other instanceof type
 					&& gameObject !== other
 					&& gameObject.collidedWith(other))
@@ -146,69 +180,66 @@ export default class Game {
 	}
 	
 	
-	static isKeyDown(key: Key): boolean {
+	public static isKeyDown(key: Key): boolean {
 		return key in Game.keysDown;
 	}
 	
-	static isKeyPressed(key: Key): boolean {
-		const timePressed: Time | undefined = Game.keysDown[key];
-		if(timePressed === undefined)
-			return false;
-		return Game.justHappened(timePressed);
+	public static isKeyPressed(key: Key): boolean {
+		const timePressed: SnapshotableTime | undefined = Game.keysDown[key];
+		return timePressed !== undefined && Game.justHappened(timePressed.value);
 	}
 	
 	
-	static get virtualScreenSizeMultiplier(): number {
-		if(!Game._screen)
+	public static get virtualScreenSizeMultiplier(): number {
+		if(!Game.#screen)
 			throw new Error("Must initialize screen");
-		return Game._screen.clientHeight / Game.screenHeight;
+		return Game.#screen.clientHeight / Game.screenHeight;
 	}
 	
 	
 	// milliseconds since last frame
-	static get deltaTime(): Milliseconds {
-		return Game.lastFrameTimeStamp?
-			Game.currentFrameTimeStamp - Game.lastFrameTimeStamp
+	public static get deltaTime(): Milliseconds {
+		return Game.lastFrameTimeStamp.value !== 0?
+			Game.currentFrameTimeStamp.value - Game.lastFrameTimeStamp.value
 			: 1000 / Game.maxFrameRate;
 	}
 	
 	private static updateDeltaTime(): void {
 		Game.lastFrameTimeStamp = Game.currentFrameTimeStamp;
-		Game.currentFrameTimeStamp = Date.now();
+		Game.currentFrameTimeStamp = SnapshotableTime.now();
 	}
 	
 	
-	// in milliseconds
-	static get timeSinceStart(): Milliseconds {
-		return Date.now() - Game.#timeStart;
+	public static get timeSinceStart(): Milliseconds {
+		return Date.now() - Game.timeStart.value;
 	}
 	
 	
-	// returns whether a time occured between the last frame and current frame
-	static justHappened(time: Time): boolean {
-		return time >= Game.lastFrameTimeStamp && time <= Game.currentFrameTimeStamp;
+	// returns whether a time occurred between the last frame and current frame
+	public static justHappened(time: Time): boolean {
+		return time >= Game.lastFrameTimeStamp.value && time <= Game.currentFrameTimeStamp.value;
 	}
 	
 	
-	static get frameCount(): number {
-		return Game.#frameCount;
+	public static get frameCount(): number {
+		return Game._frameCount;
 	}
 	
 	
-	static getInstanceCount<T extends GameObject>(type: Constructor<T>): number {
+	public static getInstanceCount<T extends GameObject>(type: Constructor<T>): number {
 		return Game._instanceCounts[type.name] ?? 0;
 	}
 	
 	
-	static async preloadImage(url: string) {
+	public static async preloadImage(url: string) {
 		return new Promise<void>(resolve => {
-			if(url in Game.preloadedImages) {
+			if(url in Game.#preloadedImages) {
 				resolve();
 				return;
 			}
 			const img = new Image();
 			img.onload = () => {
-				Game.preloadedImages[url] = img;
+				Game.#preloadedImages[url] = img;
 				resolve();
 			};
 			img.src = url;
@@ -216,44 +247,41 @@ export default class Game {
 	}
 	
 	
-	// repeatables are functions that get called at a set rate like 5 times per second
-	// use this instead of setInterval because this will time more accurately alongside the game's framerate
-	static _repeatables: Record<RepeatableId, Repeatable> = {}
-	private static nextRepeatableId: RepeatableId = 0;
-	static addRepeatable(fn: AnyFunction, timesPerSecond: Hertz): RepeatableId {
-		Game._repeatables[Game.nextRepeatableId] = {
-			fn, timesPerSecond, timeOfLastFrameIdeally: Date.now(),
-		};
-		return Game.nextRepeatableId ++;
+	public static addRepeatable(fn: AnyFunction | SnapshotableClosure, timesPerSecond: Hertz): RepeatableId {
+		const repeatable = new Repeatable(fn, timesPerSecond);
+		Game._repeatables[repeatable.id] = repeatable;
+		return repeatable.id;
 	}
-	static removeRepeatable(id: RepeatableId | null): void {
+	public static removeRepeatable(id: RepeatableId | null): void {
 		if(id !== null) delete Game._repeatables[id];
 	}
 	private static runRepeatables(): void {
-		Object.values(Game._repeatables).forEach(repeatable => {
-			const now: Time = Date.now();
-			const period: Milliseconds = 1000 / repeatable.timesPerSecond;
-			if(now - repeatable.timeOfLastFrameIdeally >= period) {
-				repeatable.fn();
-				repeatable.timeOfLastFrameIdeally += period;
-				// so you don't get too behind if low framerate:
-				if(now - repeatable.timeOfLastFrameIdeally > period)
-					repeatable.timeOfLastFrameIdeally = now;
-			}
-		});
+		for(const repeatable of Object.values(Game._repeatables)) {
+			repeatable.tryRun();
+		}
 	}
 	
 	
-	private static doSteps(): void {
+	private static step(): void {
 		Game.updateDeltaTime();
-		Game.globalSteps.forEach(step => step());
-		Game._gameObjects.forEach(gameObject => gameObject.step());
-		Game._gameObjects.forEach(gameObject => gameObject.update());
+		
+		Game.globalSteps.forEach(step => step instanceof SnapshotableClosure? step.run() : step());
+		
+		Game.__gameObjects.forEach(gameObject => gameObject.step());
+		Game.__gameObjects.forEach(gameObject => gameObject.update());
+		
 		Game.runRepeatables();
+		
 		if(Game.isRunning) {
-			const timeSinceFrameStart: Milliseconds = Date.now() - Game.currentFrameTimeStamp;
-			Game.timeoutId = setTimeout(Game.doSteps, Math.max(0, 1000 / Game.maxFrameRate - timeSinceFrameStart));
+			const timeSinceFrameStart: Milliseconds = Date.now() - Game.currentFrameTimeStamp.value;
+			Game.timeoutId = setTimeout(Game.step, Math.max(0, 1000 / Game.maxFrameRate - timeSinceFrameStart));
 		}
-		Game.#frameCount ++;
+		
+		Game._frameCount ++;
+	}
+	
+	
+	public static snapshotClassStatics(): ClassStatics {
+		return { ...Snapshotable.snapshotClassStatics(Game), keysDown: {} };
 	}
 }

@@ -1,42 +1,46 @@
 import Game from "./Game.ts";
+import SnapshotableClosure from "./SnapshotableClosure.ts";
+import Snapshotable from "./Snapshotable.ts";
 
 
-export default abstract class GameObject {
+export default abstract class GameObject extends Snapshotable {
 	
-	_object: HTMLDivElement;
-	left: Pixels = 0;
-	top: Pixels = 0;
-	#width: Pixels = 0;
-	#height: Pixels = 0;
-	rotation: Degrees = 0;
-	xVelocity: PixelsPerSecond = 0;
-	yVelocity: PixelsPerSecond = 0;
-	_hitboxLeft: Pixels = 0;
-	_hitboxTop: Pixels = 0;
-	_hitboxRight: Pixels = 0;
-	_hitboxBottom: Pixels = 0;
-	originX: Pixels;
-	originY: Pixels;
-	#sprite: string | null = null;
-	#spriteChanged: boolean = false;
-	#spriteImages: string[] | null = null;
-	#imageSpeed: Hertz = 1;
+	public __object: HTMLDivElement;
+	public left: Pixels = 0;
+	public top: Pixels = 0;
+	private _width: Pixels = 0;
+	private _height: Pixels = 0;
+	public rotation: Degrees = 0;
+	public xVelocity: PixelsPerSecond = 0;
+	public yVelocity: PixelsPerSecond = 0;
+	public __hitboxLeft: Pixels = 0;
+	public __hitboxTop: Pixels = 0;
+	public __hitboxRight: Pixels = 0;
+	public __hitboxBottom: Pixels = 0;
+	public originX: Pixels;
+	public originY: Pixels;
+	private _sprite: string | null = null;
+	private spriteChanged: boolean = false;
+	private spriteImages: string[] | null = null;
+	private _imageSpeed: Hertz = 1;
 	private animationRepeatableId: RepeatableId | null = null;
-	#imageIndex: number = 0;
-	opacity: number = 1;
-	onClick: AnyFunction | null = null;
-	onRightClick: AnyFunction | null = null;
-	onMiddleClick: AnyFunction | null = null;
+	private _imageIndex: number = 0;
+	public opacity: number = 1;
+	public onClick: AnyFunction | SnapshotableClosure | null = null;
+	public onRightClick: AnyFunction | SnapshotableClosure | null = null;
+	public onMiddleClick: AnyFunction | SnapshotableClosure | null = null;
 	
 	protected constructor(
 		x: Pixels = 0, y: Pixels = 0, width: Pixels = 0, height: Pixels = 0, sprite: string = "",
 		{ hitboxWidth, hitboxHeight, originX=0, originY=0 }: ObjectOptions = {}
 	) {
-		this._object = document.createElement("div");
-		this._object.style.position = "absolute"
-		this._object.style.backgroundRepeat = "no-repeat"
-		this._object.style.backgroundSize = "100% 100%"
-		this._object.style.imageRendering = "pixelated";
+		super();
+		
+		this.__object = document.createElement("div");
+		this.__object.style.position = "absolute"
+		this.__object.style.backgroundRepeat = "no-repeat"
+		this.__object.style.backgroundSize = "100% 100%"
+		this.__object.style.imageRendering = "pixelated";
 		
 		this.originX = originX;
 		this.originY = originY;
@@ -52,116 +56,108 @@ export default abstract class GameObject {
 		
 		this.setHitbox(hitboxWidth, hitboxHeight);
 		
-		this._object.addEventListener("mousedown", e => {
-			if(e.button === 0) this.onClick?.();
-			if(e.button === 1) this.onMiddleClick?.();
-			if(e.button === 2) this.onRightClick?.();
-		});
+		this.__object.addEventListener("mousedown", e => this.onMouseDown(e));
 		
-		if(!Game._screen)
-			throw new Error("Must initialize screen");
-		Game._screen.append(this._object);
-		
-		Game._appendGameObject(this);
+		Game.__appendGameObject(this);
 	}
 	
 	
 	// updates things like position and sprite
-	update(): void {
+	public update(): void {
 		this.x += (this.xVelocity / 1000) * Game.deltaTime;
 		this.y += (this.yVelocity / 1000) * Game.deltaTime;
 		
 		const roundOrNot: (x: Pixels) => Pixels = Game.lockPositionsToVirtualPixels? Math.round : x => x;
 		const ceilOrNot: (x: Pixels) => Pixels = Game.lockPositionsToVirtualPixels? Math.ceil : x => x;
-		this._object.style.left = roundOrNot(this.left) * Game.virtualScreenSizeMultiplier + "px";
-		this._object.style.top = roundOrNot(this.top) * Game.virtualScreenSizeMultiplier + "px";
-		this._object.style.width = ceilOrNot(this.#width) * Game.virtualScreenSizeMultiplier + "px";
-		this._object.style.height = ceilOrNot(this.#height) * Game.virtualScreenSizeMultiplier + "px";
-		this._object.style.transform = "rotate(" + this.rotation + "deg)";
-		this._object.style.opacity = String(this.opacity);
-		if(this.#spriteChanged && this.sprite)
+		this.__object.style.left = roundOrNot(this.left) * Game.virtualScreenSizeMultiplier + "px";
+		this.__object.style.top = roundOrNot(this.top) * Game.virtualScreenSizeMultiplier + "px";
+		this.__object.style.width = ceilOrNot(this._width) * Game.virtualScreenSizeMultiplier + "px";
+		this.__object.style.height = ceilOrNot(this._height) * Game.virtualScreenSizeMultiplier + "px";
+		this.__object.style.transform = "rotate(" + this.rotation + "deg)";
+		this.__object.style.opacity = String(this.opacity);
+		if(this.spriteChanged && this.sprite)
 			Game.preloadImage(this.sprite)
-				.then(() => this._object.style.backgroundImage = "url(" + this.sprite + ")");
+				.then(() => this.__object.style.backgroundImage = "url(" + this.sprite + ")");
 	}
 	
 	
-	get x(): Pixels {
+	public get x(): Pixels {
 		return this.left + this.originX;
 	}
-	set x(x: Pixels) {
+	public set x(x: Pixels) {
 		this.left = x - this.originX;
 	}
 	
-	get y(): Pixels {
+	public get y(): Pixels {
 		return this.top + this.originY;
 	}
-	set y(y: Pixels) {
+	public set y(y: Pixels) {
 		this.top = y - this.originY;
 	}
 	
-	get right(): Pixels {
+	public get right(): Pixels {
 		return this.left + this.width;
 	}
-	set right(right: Pixels) {
+	public set right(right: Pixels) {
 		this.left = right - this.width;
 	}
 	
-	get bottom(): Pixels {
+	public get bottom(): Pixels {
 		return this.top + this.height;
 	}
-	set bottom(bottom: Pixels) {
+	public set bottom(bottom: Pixels) {
 		this.top = bottom - this.height;
 	}
 	
-	get middleX(): Pixels {
+	public get middleX(): Pixels {
 		return (this.left + this.right) / 2;
 	}
-	set middleX(middleX: Pixels) {
+	public set middleX(middleX: Pixels) {
 		this.left = middleX - this.width / 2;
 	}
 	
-	get middleY(): Pixels {
+	public get middleY(): Pixels {
 		return (this.top + this.bottom) / 2;
 	}
-	set middleY(middleY: Pixels) {
+	public set middleY(middleY: Pixels) {
 		this.top = middleY - this.height / 2;
 	}
 	
-	get width(): Pixels {
-		return this.#width;
+	public get width(): Pixels {
+		return this._width;
 	}
-	set width(width: Pixels) {
-		this._hitboxLeft = this._hitboxLeft * width / this.width;
-		this._hitboxRight = this._hitboxRight * width / this.width;
-		this.#width = width;
-	}
-	
-	get height(): Pixels {
-		return this.#height;
-	}
-	set height(height: Pixels) {
-		this._hitboxTop = this._hitboxTop * height / this.height;
-		this._hitboxBottom = this._hitboxBottom * height / this.height;
-		this.#height = height;
+	public set width(width: Pixels) {
+		this.__hitboxLeft = this.__hitboxLeft * width / this.width;
+		this.__hitboxRight = this.__hitboxRight * width / this.width;
+		this._width = width;
 	}
 	
+	public get height(): Pixels {
+		return this._height;
+	}
+	public set height(height: Pixels) {
+		this.__hitboxTop = this.__hitboxTop * height / this.height;
+		this.__hitboxBottom = this.__hitboxBottom * height / this.height;
+		this._height = height;
+	}
 	
-	get speed(): PixelsPerSecond {
+	
+	public get speed(): PixelsPerSecond {
 		return Math.sqrt(this.xVelocity ** 2 + this.yVelocity ** 2);
 	}
-	set speed(speed: PixelsPerSecond) {
+	public set speed(speed: PixelsPerSecond) {
 		const angle: Degrees = this.velocityAngle;
 		this.xVelocity = speed * Math.cos(angle);
 		this.yVelocity = speed * Math.sin(angle);
 	}
 	
-	get velocityAngle(): Degrees {
+	public get velocityAngle(): Degrees {
 		if(this.xVelocity === 0 && this.yVelocity === 0)
 			return 0; // TODO is this really how we want that to work?
 		const radians: Radians = Math.atan2(this.yVelocity, this.xVelocity);
 		return (180 / Math.PI) * radians;
 	}
-	set velocityAngle(angle: Degrees) {
+	public set velocityAngle(angle: Degrees) {
 		const radians: Radians = (Math.PI / 180) * angle;
 		const speed: PixelsPerSecond = this.speed;
 		this.xVelocity = speed * Math.cos(radians);
@@ -169,80 +165,87 @@ export default abstract class GameObject {
 	}
 	
 	
-	setHitbox(hitboxWidth: Pixels = this.width, hitboxHeight: Pixels = this.height): void  {
-		this._hitboxLeft = this.width/2 - hitboxWidth/2;
-		this._hitboxTop = this.height/2 - hitboxHeight/2;
-		this._hitboxRight = this._hitboxLeft + hitboxWidth;
-		this._hitboxBottom = this._hitboxTop + hitboxHeight;
+	public setHitbox(hitboxWidth: Pixels = this.width, hitboxHeight: Pixels = this.height): void  {
+		this.__hitboxLeft = this.width/2 - hitboxWidth/2;
+		this.__hitboxTop = this.height/2 - hitboxHeight/2;
+		this.__hitboxRight = this.__hitboxLeft + hitboxWidth;
+		this.__hitboxBottom = this.__hitboxTop + hitboxHeight;
 	}
 	
-	get hitboxLeft(): Pixels {
-		return this.left + this._hitboxLeft;
+	public get hitboxLeft(): Pixels {
+		return this.left + this.__hitboxLeft;
 	}
 	
-	get hitboxTop(): Pixels {
-		return this.top + this._hitboxTop;
+	public get hitboxTop(): Pixels {
+		return this.top + this.__hitboxTop;
 	}
 	
-	get hitboxRight(): Pixels {
-		return this.left + this._hitboxRight;
+	public get hitboxRight(): Pixels {
+		return this.left + this.__hitboxRight;
 	}
 	
-	get hitboxBottom(): Pixels {
-		return this.top + this._hitboxBottom;
+	public get hitboxBottom(): Pixels {
+		return this.top + this.__hitboxBottom;
 	}
 	
 	
-	get relativeMouseX(): Pixels {
+	public get relativeMouseX(): Pixels {
 		return Game.mouseX - this.x;
 	}
 	
-	get relativeMouseY(): Pixels {
+	public get relativeMouseY(): Pixels {
 		return Game.mouseY - this.x;
 	}
 	
 	
-	get mouseHovered(): boolean {
+	public get mouseHovered(): boolean {
 		return Game.mouseX > this.left && Game.mouseX < this.right
 			&& Game.mouseY > this.top && Game.mouseY < this.bottom;
 	}
 	
 	
-	get sprite(): string | null {
-		return this.#sprite;
+	public get sprite(): string | null {
+		return this._sprite;
 	}
-	set sprite(sprite: string | null) {
-		this.#sprite = sprite;
-		this.#spriteChanged = true;
+	public set sprite(sprite: string | null) {
+		this._sprite = sprite;
+		this.spriteChanged = true;
 	}
 	
-	set animatedSprite(spriteImages: string[]) {
+	public set animatedSprite(spriteImages: string[]) {
 		if(spriteImages.length === 0)
 			throw new Error("can't set animation without sprites");
-		this.#spriteImages = spriteImages;
+		
+		this.spriteImages = spriteImages;
 		this.sprite = spriteImages[0]!;
+		
 		Game.removeRepeatable(this.animationRepeatableId);
 		this.animationRepeatableId = null;
-		this.animationRepeatableId = Game.addRepeatable(() => {
-			if(!this.#spriteImages)
-				throw new Error("sprite images for animation not set");
-			this.imageIndex = (this.imageIndex + 1) % this.#spriteImages.length;
-		}, this.imageSpeed);
+		
+		this.animationRepeatableId = Game.addRepeatable(
+			new SnapshotableClosure(this, this.nextAnimationFrame),
+			this.imageSpeed
+		);
+	}
+	private nextAnimationFrame(): void {
+		if(!this.spriteImages)
+			throw new Error("sprite images for animation not set");
+		this.imageIndex = (this.imageIndex + 1) % this.spriteImages.length;
 	}
 	
-	get imageIndex() {
-		return this.#imageIndex;
+	public get imageIndex() {
+		return this._imageIndex;
 	}
-	set imageIndex(imageIndex: number) {
-		this.#imageIndex = imageIndex;
-		this.sprite = this.#spriteImages![imageIndex]!;
+	public set imageIndex(imageIndex: number) {
+		this._imageIndex = imageIndex;
+		this.sprite = this.spriteImages![imageIndex]!;
 	}
 	
-	get imageSpeed() {
-		return this.#imageSpeed;
+	public get imageSpeed() {
+		return this._imageSpeed;
 	}
-	set imageSpeed(imageSpeed: Hertz) {
-		this.#imageSpeed = imageSpeed;
+	public set imageSpeed(imageSpeed: Hertz) {
+		this._imageSpeed = imageSpeed;
 		if(!this.animationRepeatableId)
 			return;
 		if(imageSpeed === 0) {
@@ -255,15 +258,25 @@ export default abstract class GameObject {
 	
 	
 	// higher depth = further into the screen (further behind)
-	get depth(): number {
-		return -Number(this._object.style.zIndex);
+	public get depth(): number {
+		return -Number(this.__object.style.zIndex);
 	}
-	set depth(depth: number) {
-		this._object.style.zIndex = String(-depth);
+	public set depth(depth: number) {
+		this.__object.style.zIndex = String(-depth);
 	}
 	
 	
-	collidedWith(other: GameObject): boolean {
+	private onMouseDown(e: MouseEvent): void {
+		if(e.button === 0)
+			this.onClick instanceof SnapshotableClosure? this.onClick.run() : this.onClick?.();
+		else if(e.button === 1)
+			this.onMiddleClick instanceof SnapshotableClosure? this.onMiddleClick.run() : this.onMiddleClick?.();
+		else if(e.button === 2)
+			this.onRightClick instanceof SnapshotableClosure? this.onRightClick.run() : this.onRightClick?.();
+	}
+	
+	
+	public collidedWith(other: GameObject): boolean {
 		return this.hitboxRight > other.hitboxLeft
 			&& this.hitboxLeft < other.hitboxRight
 			&& this.hitboxBottom > other.hitboxTop
@@ -271,15 +284,15 @@ export default abstract class GameObject {
 	}
 	
 	
-	collidedWithType(type: Constructor<GameObject>, x?: Pixels, y?: Pixels): boolean {
+	public collidedWithType(type: GameObjectClass, x?: Pixels, y?: Pixels): boolean {
 		return Game.objectCollidedWithType(this, type, x, y);
 	}
-	getCollisionsWithType<T extends GameObject>(type: Constructor<T>, x?: Pixels, y?: Pixels): T[] {
+	public getCollisionsWithType<T extends GameObject>(type: Constructor<T>, x?: Pixels, y?: Pixels): T[] {
 		return Game.getObjectsCollisionsWithType(this, type, x, y);
 	}
 	
 	
-	withTempPosition<T>(x: Pixels | undefined, y: Pixels | undefined, fn: (...args: any[]) => T): T {
+	public withTempPosition<T>(x: Pixels | undefined, y: Pixels | undefined, fn: (...args: any[]) => T): T {
 		const [originalX, originalY] = [this.x, this.y];
 		if(x) this.x = x;
 		if(y) this.y = y;
@@ -292,13 +305,32 @@ export default abstract class GameObject {
 	}
 	
 	
-	destroy(): void {
-		this._object.remove();
-		Game._popGameObject(this);
+	public destroy(): void {
+		super.destroy();
+		this.__object.remove();
+		Game.__popGameObject(this);
 		Game.removeRepeatable(this.animationRepeatableId);
 	}
 	
 	
-	abstract step(): void;
+	public abstract step(): void;
+	
+	
+	// -------------------------------- snapshot recovery
+	
+	
+	protected recoverReplace(objectSnapshot: Like<GameObject>): void {
+		if(!(this.__object instanceof Element)) throw new Error(`__object isn't an HTML element. it's: ${this.__object} and my id is ${this.id}`)
+		this.__object.remove(); // remove HTML element since we'll create a new one
+		super.recoverReplace(objectSnapshot);
+		this.__object.addEventListener("mousedown", e => this.onMouseDown(e)); // must be added back
+	}
+	
+	protected static recoverCreate(objectSnapshot: Like<GameObject>): GameObject {
+		const obj = super.recoverCreate(objectSnapshot) as GameObject;
+		if(!(obj.__object instanceof Element)) throw new Error(`__object isn't an HTML element. it's: ${obj.__object} and my id is ${obj.id}`)
+		obj.__object.addEventListener("mousedown", e => obj.onMouseDown(e)); // must be added back
+		return obj;
+	}
 	
 }

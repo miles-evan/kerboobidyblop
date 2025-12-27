@@ -1,26 +1,30 @@
 import GameObject from "../../engine/GameObject.ts";
+import type SnapshotableClosure from "../../engine/SnapshotableClosure.ts";
 
 
 export default class ShowWhenHoveredOver extends GameObject {
 	
-	mouseWasHovered: boolean = false;
-	onHover: AnyFunction | undefined;
-	onStopHover: AnyFunction | undefined;
+	private mouseWasHovered: boolean = false;
+	private readonly onHover: SnapshotableClosure | null;
+	private readonly onStopHover: SnapshotableClosure | null;
+	private readonly runContinuously: boolean;
 	
-	constructor(
+	public constructor(
 		x: Pixels, y: Pixels, width: Pixels, height: Pixels, sprite: string,
-		onHover?: AnyFunction, onStopHover?: AnyFunction
+		onHover?: SnapshotableClosure, onStopHover?: SnapshotableClosure, runContinuously: boolean = false,
 	) {
 		super(x, y, width, height, sprite);
-		this.onHover = onHover;
-		this.onStopHover = onStopHover;
+		this.onHover = onHover ?? null;
+		this.onStopHover = onStopHover ?? null;
+		this.runContinuously = runContinuously;
 	}
 	
-	step(): void {
+	public step(): void {
 		const mouseHovered: boolean = this.mouseHovered;
 		this.opacity = mouseHovered? 1 : 0;
-		if(mouseHovered !== this.mouseWasHovered)
-			(mouseHovered? this.onHover : this.onStopHover)?.();
+		if(this.runContinuously || mouseHovered !== this.mouseWasHovered)
+			mouseHovered? this.onHover?.run() : this.onStopHover?.run();
+		this.mouseWasHovered = mouseHovered;
 	}
 	
 }

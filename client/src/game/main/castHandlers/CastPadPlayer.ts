@@ -2,6 +2,7 @@ import Player from "./Player.ts";
 import CastPad from "../objects/CastPad.ts";
 import type Fluxometer from "../objects/Fluxometer.ts";
 import type HealthMeter from "../objects/HealthMeter.ts";
+import SnapshotableClosure from "../../engine/SnapshotableClosure.ts";
 
 
 export default class CastPadPlayer extends Player {
@@ -10,7 +11,11 @@ export default class CastPadPlayer extends Player {
 	
 	public constructor(healthMeter: HealthMeter, fluxometer: Fluxometer, castPadX: Pixels = 120, castPadY: Pixels = 30) {
 		super(fluxometer, healthMeter);
-		new CastPad(castPadX, castPadY, cast => this.cast = cast);
+		new CastPad(castPadX, castPadY, new SnapshotableClosure(this, this.setCast));
+	}
+	
+	private setCast(cast: [Tier, Power, Lane]) {
+		this.cast = cast;
 	}
 	
 	public tryCast(): [Tier, Power, Lane] | null {

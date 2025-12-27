@@ -5,9 +5,10 @@ import boardSprite from "../sprites/board.png";
 import type Player from "../castHandlers/Player.ts";
 import Endzone from "./Endzone.ts";
 
+
 export default class Board extends GameObject {
-	public readonly player1: Player;
-	public readonly player2: Player;
+	private readonly player1: Player;
+	private readonly player2: Player;
 	public topLeftTileX: number;
 	public topLeftTileY: number;
 	
@@ -19,8 +20,8 @@ export default class Board extends GameObject {
 		this.depth = 2;
 		[this.topLeftTileX, this.topLeftTileY] = [this.x + 8, this.y + 10];
 		
-		new Endzone(this.x, this.getPositionOfTile(0, 0)[1] + 16, damage => player1.hurt(damage));
-		new Endzone(this.x, this.getPositionOfTile(0, 9)[1] - 16, damage => player2.hurt(damage));
+		new Endzone(this.x, this.getPositionOfTile(0, 0)[1] + 16, player1);
+		new Endzone(this.x, this.getPositionOfTile(0, 9)[1] - 16, player2);
 		
 		Spell.syncTiles();
 	}
@@ -31,7 +32,7 @@ export default class Board extends GameObject {
 	}
 	
 	// validate flux and collision and spawn spell
-	public initiatePlayerCast(playerNum: PlayerNum): void {
+	private initiatePlayerCast(playerNum: PlayerNum): void {
 		const player: Player = playerNum === 1? this.player1 : this.player2;
 		const rank: Rank = playerNum === 1? 0 : 9;
 		const cast: [Tier, Power, Lane] | null = player.tryCast();
