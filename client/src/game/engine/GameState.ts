@@ -32,14 +32,11 @@ export default class GameState {
 		// snapshot classes
 		const classStatics: Record<string, ClassStatics> = { ...GameState.constructorRegistry };
 		for(const className in classStatics) {
-			classStatics[className] = Snapshotable.snapshotClassStatics(classStatics[className]!);
+			const ctor = classStatics[className]!;
+			classStatics[className] = ctor.snapshotClassStatics(classStatics[className]!);
 		}
 		
-		// snapshot other classes
-		const snapshotableClassStatics: ClassStatics = Snapshotable.snapshotClassStatics(Snapshotable);
-		const gameClassStatics: ClassStatics = Snapshotable.snapshotClassStatics(Game);
-		
-		return { objects, classStatics, snapshotableClassStatics, gameClassStatics };
+		return { objects, classStatics };
 	}
 	
 	
@@ -55,15 +52,9 @@ export default class GameState {
 		
 		// recover classes
 		for(const className in GameState.constructorRegistry) {
-			Snapshotable.recoverClassStatics(
-				GameState.constructorRegistry[className]!,
-				snapshot.classStatics[className]!
-			);
+			const ctor = GameState.constructorRegistry[className]!
+			ctor.recoverClassStatics(ctor, snapshot.classStatics[className]!);
 		}
-		
-		// recover other classes
-		Snapshotable.recoverClassStatics(Snapshotable, snapshot.snapshotableClassStatics);
-		Snapshotable.recoverClassStatics(Game, snapshot.gameClassStatics);
 		
 		Game.stop();
 		Game.start();
@@ -84,9 +75,6 @@ export default class GameState {
 		for(const ctor of Object.values(GameState.constructorRegistry)) {
 			Snapshotable.cleanClassStatics(ctor, validIds, idsFound);
 		}
-		
-		// Game class
-		Snapshotable.cleanClassStatics(Game, validIds, idsFound);
 		
 		// garbage collection
 		for(const id of Object.keys(GameState.objectRegistry)) {

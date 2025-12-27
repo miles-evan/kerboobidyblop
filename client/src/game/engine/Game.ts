@@ -3,9 +3,10 @@ import SnapshotableClosure from "./SnapshotableClosure.ts";
 import Repeatable from "./Repeatable.ts";
 import GameState from "./GameState.ts";
 import SnapshotableTime from "./SnapshotableTime.ts";
+import Snapshotable from "./Snapshotable.ts";
 
 
-export default class Game {
+export default class Game extends Snapshotable {
 	// naming scheme: regularField, _backingField, __avoidUsingUnlessYouHaveToField, #excludedFromStateField
 	public static __gameObjects: GameObject[] = [];
 	public static instanceCount: number = 0;
@@ -34,6 +35,10 @@ export default class Game {
 	private static timeStart: SnapshotableTime = new SnapshotableTime(0);
 	static #preloadedImages: Record<string, HTMLImageElement> = {};
 	public static _repeatables: Record<number, Repeatable> = {}; // id -> repeatable
+	
+	
+	// register constructor
+	static { GameState.registerConstructor(Game); }
 	
 	
 	public static init(screen: HTMLElement): boolean {
@@ -273,5 +278,10 @@ export default class Game {
 		}
 		
 		Game._frameCount ++;
+	}
+	
+	
+	public static snapshotClassStatics(): ClassStatics {
+		return { ...Snapshotable.snapshotClassStatics(Game), keysDown: {} };
 	}
 }

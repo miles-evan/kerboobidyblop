@@ -21,9 +21,8 @@ export default class Spell extends GameObject {
 	public board: Board;
 	private readonly trailRepeatableId: RepeatableId;
 	
-	static {
-		GameState.registerConstructor(Spell);
-	}
+	// register constructor
+	static { GameState.registerConstructor(Spell); }
 	
 	public constructor(x: Pixels, y: Pixels, lane: Lane, tier: Tier, playerNum: PlayerNum, power: Power = "none", board: Board) {
 		super(x, y, 16, 16, `/src/game/main/sprites/spells/spell-player${playerNum}-tier${tier}.png`);

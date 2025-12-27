@@ -45,4 +45,8 @@ export default class Room1 extends Snapshotable {
 			}, 1000);
 		}
 	}
+	
+	public static snapshotClassStatics(): ClassStatics {
+		return { ...Snapshotable.snapshotClassStatics(Room1), testing: false };
+	}
 }

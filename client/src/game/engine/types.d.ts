@@ -33,8 +33,6 @@ declare global {
 	type GameStateSnapshot = {
 		objects: Record<number, Like<Snapshotable>>,
 		classStatics: Record<string, Like<ClassStatics>>,
-		snapshotableClassStatics: Like<ClassStatics>,
-		gameClassStatics: Like<ClassStatics>,
 	};
 	type SnapshotMode = "reference" | "inline";
 }
