@@ -16,8 +16,9 @@ import SnapshotableClosure from "../../engine/SnapshotableClosure.ts";
 
 export default class CastPad extends GameObject {
 	
-	private hoveredCast: [Tier, Power] = [1, "none"];
+	private hoveredCast: [Tier, Power] | null = null;
 	private onCast: SnapshotableClosure<(cast: [Tier, Power, Lane]) => any>;
+	private justSetCast: boolean = false; // so that if hoveredCast is set twice in the same frame, it takes the non-null one
 	
 	public constructor(x: Pixels, y: Pixels, onCast: SnapshotableClosure<(cast: [Tier, Power, Lane]) => any>) {
 		super(x, y, 64, 64, castPadSprite);
@@ -32,20 +33,25 @@ export default class CastPad extends GameObject {
 				const cost: Flux = Spell.fluxCost(tier, power);
 				new ShowWhenHoveredOver(
 					x + 16*t, y + 16*p, 16, 16, costSprites[cost - 1] ?? "",
-					new SnapshotableClosure(this, this.setHoveredCast), [[tier, power]],
+					new SnapshotableClosure(this, this.setHoveredCast, [tier, power]),
+					new SnapshotableClosure(this, this.setHoveredCast, null),
 				);
 			}
 		}
 	}
 	
-	private setHoveredCast(hoveredCast: [Tier, Power]) {
-		this.hoveredCast = hoveredCast;
+	private setHoveredCast(hoveredCast: [Tier, Power] | null) {
+		if(hoveredCast !== null || !this.justSetCast)
+			this.hoveredCast = hoveredCast;
+		this.justSetCast = true;
 	}
 	
 	public step(): void {
-		if(Game.isKeyPressed("1") || Game.isKeyPressed("left-click")) this.onCast.run([...this.hoveredCast, 0])
-		else if(Game.isKeyPressed("2") || Game.isKeyPressed("middle-click")) this.onCast.run([...this.hoveredCast, 1])
-		else if(Game.isKeyPressed("3") || Game.isKeyPressed("right-click")) this.onCast.run([...this.hoveredCast, 2])
+		this.justSetCast = false;
+		if(this.hoveredCast === null) return;
+		if(Game.isKeyPressed("1") || Game.isKeyPressed("left-click")) this.onCast.run([...this.hoveredCast, 0]);
+		else if(Game.isKeyPressed("2") || Game.isKeyPressed("middle-click")) this.onCast.run([...this.hoveredCast, 1]);
+		else if(Game.isKeyPressed("3") || Game.isKeyPressed("right-click")) this.onCast.run([...this.hoveredCast, 2]);
 	}
 	
 }
