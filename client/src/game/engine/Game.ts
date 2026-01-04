@@ -181,7 +181,7 @@ export default class Game extends Snapshotable {
 	
 	
 	public static isKeyDown(key: Key): boolean {
-		return key in Game.keysDown;
+		return Game.keysDown[key] !== undefined && Game.keysDown[key].value <= Game.currentFrameTimeStamp.value;
 	}
 	
 	public static isKeyPressed(key: Key): boolean {

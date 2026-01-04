@@ -11,8 +11,8 @@ export default abstract class GameObject extends Snapshotable {
 	private _width: Pixels = 0;
 	private _height: Pixels = 0;
 	public rotation: Degrees = 0;
-	public xVelocity: PixelsPerSecond = 0;
-	public yVelocity: PixelsPerSecond = 0;
+	private _xVelocity: PixelsPerSecond = 0;
+	private _yVelocity: PixelsPerSecond = 0;
 	public __hitboxLeft: Pixels = 0;
 	public __hitboxTop: Pixels = 0;
 	public __hitboxRight: Pixels = 0;
@@ -29,6 +29,7 @@ export default abstract class GameObject extends Snapshotable {
 	public onClick: AnyFunction | SnapshotableClosure | null = null;
 	public onRightClick: AnyFunction | SnapshotableClosure | null = null;
 	public onMiddleClick: AnyFunction | SnapshotableClosure | null = null;
+	private _velocityAngle: Degrees = 0;
 	
 	protected constructor(
 		x: Pixels = 0, y: Pixels = 0, width: Pixels = 0, height: Pixels = 0, sprite: string = "",
@@ -142,26 +143,48 @@ export default abstract class GameObject extends Snapshotable {
 	}
 	
 	
+	public get xVelocity(): PixelsPerSecond {
+		return this._xVelocity;
+	}
+	public set xVelocity(xVelocity: PixelsPerSecond) {
+		this._xVelocity = xVelocity;
+		this.updateVelocityAngle();
+	}
+	public get yVelocity(): PixelsPerSecond {
+		return this._yVelocity;
+	}
+	public set yVelocity(yVelocity: PixelsPerSecond) {
+		this._yVelocity = yVelocity;
+		this.updateVelocityAngle();
+	}
+	
+	
 	public get speed(): PixelsPerSecond {
 		return Math.sqrt(this.xVelocity ** 2 + this.yVelocity ** 2);
 	}
 	public set speed(speed: PixelsPerSecond) {
-		const angle: Degrees = this.velocityAngle;
-		this.xVelocity = speed * Math.cos(angle);
-		this.yVelocity = speed * Math.sin(angle);
+		if(speed === 0) {
+			this._xVelocity = this._yVelocity = 0;
+		} else {
+			const radians: Radians = (Math.PI / 180) * this.velocityAngle;
+			this.xVelocity = speed * Math.cos(radians);
+			this.yVelocity = speed * Math.sin(radians);
+		}
 	}
 	
 	public get velocityAngle(): Degrees {
-		if(this.xVelocity === 0 && this.yVelocity === 0)
-			return 0; // TODO is this really how we want that to work?
-		const radians: Radians = Math.atan2(this.yVelocity, this.xVelocity);
-		return (180 / Math.PI) * radians;
+		return this._velocityAngle;
 	}
 	public set velocityAngle(angle: Degrees) {
+		this._velocityAngle = angle;
 		const radians: Radians = (Math.PI / 180) * angle;
-		const speed: PixelsPerSecond = this.speed;
-		this.xVelocity = speed * Math.cos(radians);
-		this.yVelocity = speed * Math.sin(radians);
+		this._xVelocity = this.speed * Math.cos(radians);
+		this._yVelocity = this.speed * Math.sin(radians);
+	}
+	private updateVelocityAngle(): void {
+		if(this.xVelocity === 0 && this.yVelocity === 0) return;
+		const radians: Radians = Math.atan2(this.yVelocity, this.xVelocity);
+		this._velocityAngle = (180 / Math.PI) * radians;
 	}
 	
 	
@@ -194,7 +217,7 @@ export default abstract class GameObject extends Snapshotable {
 	}
 	
 	public get relativeMouseY(): Pixels {
-		return Game.mouseY - this.x;
+		return Game.mouseY - this.y;
 	}
 	
 	
