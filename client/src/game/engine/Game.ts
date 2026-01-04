@@ -31,7 +31,8 @@ export default class Game extends Snapshotable {
 	static #onMouseUp: (e: MouseEvent) => void;
 	static #onMouseMove: (e: MouseEvent) => void;
 	private static _frameCount: number = 0;
-	public static globalSteps: Array<AnyFunction | SnapshotableClosure> = [];
+	public static snapshotableGlobalSteps: SnapshotableClosure[] = [];
+	static #globalSteps: AnyFunction[] = [];
 	private static timeStart: SnapshotableTime = new SnapshotableTime(0);
 	static #preloadedImages: Record<string, HTMLImageElement> = {};
 	public static _repeatables: Record<number, Repeatable> = {}; // id -> repeatable
@@ -106,7 +107,7 @@ export default class Game extends Snapshotable {
 		Game.__gameObjects = [];
 		Game._instanceCounts = {};
 		Game.instanceCount = 0;
-		Game.globalSteps = [];
+		Game.snapshotableGlobalSteps = [];
 		Game._repeatables = {};
 		return true;
 	}
@@ -247,6 +248,11 @@ export default class Game extends Snapshotable {
 	}
 	
 	
+	public static get globalSteps(): AnyFunction[] {
+		return Game.#globalSteps;
+	}
+	
+	
 	public static addRepeatable(fn: AnyFunction | SnapshotableClosure, timesPerSecond: Hertz): RepeatableId {
 		const repeatable = new Repeatable(fn, timesPerSecond);
 		Game._repeatables[repeatable.id] = repeatable;
@@ -265,7 +271,8 @@ export default class Game extends Snapshotable {
 	private static step(): void {
 		Game.updateDeltaTime();
 		
-		Game.globalSteps.forEach(step => step instanceof SnapshotableClosure? step.run() : step());
+		Game.snapshotableGlobalSteps.forEach(step => step.run());
+		Game.#globalSteps.forEach(step => step());
 		
 		Game.__gameObjects.forEach(gameObject => gameObject.step());
 		Game.__gameObjects.forEach(gameObject => gameObject.update());

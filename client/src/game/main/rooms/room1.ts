@@ -31,7 +31,7 @@ export default class Room1 extends Snapshotable {
 			),
 		);
 		
-		Game.globalSteps.push(new SnapshotableClosure(Room1, Room1.test));
+		Game.snapshotableGlobalSteps.push(new SnapshotableClosure(Room1, Room1.test));
 	}
 	
 	private static test(): void {

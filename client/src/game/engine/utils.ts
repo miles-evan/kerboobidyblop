@@ -1,5 +1,3 @@
-
-
 export function mapObj<V>(
 	obj: Record<string, any>,
 	mapperFn: (value: any, key: string, obj: Record<string, any>) => V
