@@ -4,6 +4,7 @@ import Repeatable from "./Repeatable.ts";
 import GameState from "./GameState.ts";
 import SnapshotableTime from "./SnapshotableTime.ts";
 import Snapshotable from "./Snapshotable.ts";
+import TimeWindow from "./TimeWindow.ts";
 
 
 export default class Game extends Snapshotable {
@@ -272,7 +273,7 @@ export default class Game extends Snapshotable {
 	}
 	
 	
-	private static step(): void {
+	private static step(scheduleNextStep: boolean = true): void {
 		Game.updateDeltaTime();
 		
 		Game.snapshotableGlobalSteps.forEach(step => step.run());
@@ -283,12 +284,32 @@ export default class Game extends Snapshotable {
 		
 		Game.runRepeatables();
 		
-		if(Game.isRunning) {
+		if(Game.isRunning && scheduleNextStep) {
 			const timeSinceFrameStart: Milliseconds = Date.now() - Game.currentFrameTimeStamp.value;
 			Game.timeoutId = setTimeout(Game.step, Math.max(0, 1000 / Game.maxFrameRate - timeSinceFrameStart));
 		}
 		
 		Game._frameCount ++;
+	}
+	
+	
+	// lets you replay and simulate inputs quickly
+	public static replay(inputs: TimeWindow<Record<Key, SnapshotableTime>>, startIndex: number): void {
+		// so the first delta time is correct:
+		Game.currentFrameTimeStamp = new SnapshotableTime(startIndex === 0?
+			inputs.getAtIndex(0).timeStamp - 1000 / Game.maxFrameRate
+			: inputs.getAtIndex(startIndex - 1).timeStamp
+		);
+		
+		for(let i = startIndex; i < inputs.windowSize; i ++) {
+			const currentInputs = inputs.getAtIndex(i);
+			SnapshotableTime.setTime(currentInputs.timeStamp);
+			Game.keysDown = currentInputs.value;
+			Game.step(false);
+		}
+		
+		SnapshotableTime.resetTime();
+		Game.keysDown = {};
 	}
 	
 	

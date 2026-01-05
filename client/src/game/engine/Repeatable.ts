@@ -20,7 +20,7 @@ export default class Repeatable extends Snapshotable {
 	
 	// checks if it's time to run the function, and runs it
 	public tryRun(): void {
-		const now: Time = Date.now();
+		const now: Time = SnapshotableTime.now().value;
 		const period: Milliseconds = 1000 / this.timesPerSecond;
 		if(now - this.timeOfLastFrameIdeally.value < period) return; // not time yet
 		

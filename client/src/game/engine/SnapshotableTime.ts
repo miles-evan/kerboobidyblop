@@ -3,6 +3,8 @@ import Snapshotable from "./Snapshotable.ts";
 
 // stores a time (see Time type), but auto adjusts when recovered (relative to when it was captured)
 export default class SnapshotableTime extends Snapshotable {
+	
+	private static offset: Milliseconds = 0; // you can change the time so .now() gives you a diff time
 	public value: Time;
 	
 	public constructor(time: Time) {
@@ -11,7 +13,15 @@ export default class SnapshotableTime extends Snapshotable {
 	}
 	
 	public static now(): SnapshotableTime {
-		return new SnapshotableTime(Date.now());
+		return new SnapshotableTime(Date.now() + SnapshotableTime.offset);
+	}
+	
+	public static setTime(time: Time): void {
+		SnapshotableTime.offset = time - Date.now();
+	}
+	
+	public static resetTime(): void {
+		SnapshotableTime.offset = 0;
 	}
 	
 	public snapshot(): Like<Snapshotable> {

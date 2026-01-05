@@ -8,28 +8,32 @@ import SnapshotableTime from "./SnapshotableTime.ts";
 
 export default class Recorder extends Snapshotable {
 	
-	static { GameState.registerConstructor(Recorder); }
+	static { GameState.registerConstructor(Recorder); } // only registered so we can use snapshotableClosure
 	
+	// all #private to remain unchanged from snapshots
 	static #snapshots: TimeWindow<GameStateSnapshot> | null = null;
 	static #inputs: TimeWindow<Record<Key, SnapshotableTime>> | null = null;
-	static #recording: boolean = false;
+	static #state: "stopped" | "recording" | "paused" = "stopped";
 	static #snapshotsRepeatableId: RepeatableId = -1;
 	static #inputsRepeatableId: RepeatableId = -1;
 	
 	
 	private static snapshot(): void {
-		Recorder.#snapshots?.push(Date.now(), GameState.snapshot());
+		if(Recorder.#state !== "recording") return;
+		Recorder.#snapshots!.push(Date.now(), GameState.snapshot());
 	}
 	
 	private static saveInputs(): void {
-		Recorder.#inputs?.push(Date.now(), Game.keysDownObject);
+		if(Recorder.#state !== "recording") return;
+		Recorder.#inputs!.push(Date.now(), Game.keysDownObject);
 	}
 	
 	
 	public static start(tickRate: Hertz = Game.maxFrameRate, windowSize: number = Game.maxFrameRate * 5): void {
-		if(Recorder.#recording) return;
+		if(Recorder.#state === "recording" || Recorder.#state === "paused") return;
 		this.#snapshots = new TimeWindow(windowSize, 1000 / tickRate);
-		this.#recording = true;
+		this.#snapshots = new TimeWindow(Game.maxFrameRate / tickRate, 1000 / Game.maxFrameRate);
+		this.#state = "recording";
 		
 		Recorder.#snapshotsRepeatableId =
 			Game.addRepeatable(new SnapshotableClosure(Recorder, Recorder.snapshot), tickRate);
@@ -39,19 +43,40 @@ export default class Recorder extends Snapshotable {
 	
 	
 	public static stop(): void {
-		if(!Recorder.#recording) return;
+		if(Recorder.#state === "stopped") return;
 		Recorder.#snapshots = null;
-		Recorder.#recording = false;
+		Recorder.#state = "stopped";
 		Game.removeRepeatable(Recorder.#snapshotsRepeatableId);
 		Game.removeRepeatable(Recorder.#inputsRepeatableId);
 		Recorder.#snapshotsRepeatableId = Recorder.#inputsRepeatableId = -1;
 	}
 	
 	
-	public static rewind(timeStamp: Time): void {
+	private static pause(): void {
+		if(Recorder.#state !== "recording") return;
+		Recorder.#state = "paused";
+	}
+	private static unPause(): void {
+		if(Recorder.#state !== "paused") return;
+		Recorder.#state = "recording";
+	}
+	
+	
+	public static rewindAndReplay(timeStamp: Time): void {
 		const snapshot = Recorder.#snapshots?.getAtTime(timeStamp);
 		if(!snapshot) throw new Error(`Cannot rewind to time ${timeStamp} because it was not recorded`);
-		GameState.recover(snapshot);
+		
+		Recorder.pause();
+		
+		GameState.recover(snapshot.value);
+		SnapshotableTime.setTime(snapshot.timeStamp);
+		
+		const startIndex = Recorder.#inputs!.getIndexAtTime(snapshot.timeStamp);
+		if(startIndex === -1) throw new Error(`Cannot rewind to time ${timeStamp} because it was not recorded`);
+		
+		Game.replay(Recorder.#inputs!, startIndex);
+		
+		Recorder.unPause();
 	}
 	
 }

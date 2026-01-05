@@ -6,7 +6,7 @@ type Pair<T> = { timeStamp: Time, value: T };
 export default class TimeWindow<T> {
 	
 	private readonly data: Pair<T>[];
-	private readonly windowSize: number;
+	public readonly windowSize: number;
 	private readonly estimatedTimeGap: Milliseconds;
 	private headIndex: number = 0; // where start is
 	private nextTailIndex: number = 0; // where next element will be pushed
@@ -41,34 +41,50 @@ export default class TimeWindow<T> {
 	}
 
 	
-	public push(timeStamp: number, value: T): void {
+	public push(timeStamp: Time, value: T): void {
 		this.data[this.nextTailIndex] = { timeStamp, value };
 		this.incrementTail();
 		if(this.headIndex === this.nextTailIndex) this.incrementHead();
 	}
 	
 	
-	public getAtTime(timeStamp: Time): T | null {
-		if(!this.inTimeRange(timeStamp)) return null;
+	public getAtIndex(index: number): { timeStamp: Time, value: T } {
+		return this.data[(this.headIndex + index) % this.windowSize]!;
+	}
+	
+	
+	public getIndexAtTime(timeStamp: Time): number {
+		if(!this.inTimeRange(timeStamp)) return -1;
 		
 		const startTime: Time = this.data[this.headIndex]!.timeStamp;
-		const guessIndex = (this.headIndex + Math.floor((timeStamp - startTime) / this.estimatedTimeGap)) % this.windowSize;
-		const guessPair: Pair<T> = this.data[guessIndex]!;
+		const guessIndex =
+			(this.headIndex + Math.floor((timeStamp - startTime) / this.estimatedTimeGap)) % this.windowSize;
 		
 		let index = guessIndex;
-		let pair = guessPair;
+		let pair = this.data[index]!;
 		const dirToSearch = Math.sign(timeStamp - pair.timeStamp);
 		
 		while(Math.sign(timeStamp - pair.timeStamp) === dirToSearch) {
 			if(index === this.lastIndex && dirToSearch === 1) break;
 			if(index === this.headIndex && dirToSearch === -1) break;
 			
-			index = dirToSearch === 1? this.incrementedIndex(index) : this.decrementedIndex(index);
+			index = dirToSearch === 1 ? this.incrementedIndex(index) : this.decrementedIndex(index);
 			pair = this.data[index]!;
 		}
 		
-		return Math.abs(guessPair.timeStamp - timeStamp) < Math.abs(pair.timeStamp - timeStamp)?
-			guessPair.value : pair.value; // return the closer one
+		const closerIndex =
+			Math.abs(this.data[guessIndex]!.timeStamp - timeStamp) <
+			Math.abs(pair.timeStamp - timeStamp)
+				? guessIndex
+				: index;
+		
+		return (closerIndex - this.headIndex + this.windowSize) % this.windowSize;
+	}
+	
+	public getAtTime(timeStamp: Time): { timeStamp: Time, value: T } | null {
+		const index = this.getIndexAtTime(timeStamp);
+		if(index === -1) return null;
+		return this.getAtIndex(index);
 	}
 	
 }
