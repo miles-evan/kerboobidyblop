@@ -1,6 +1,6 @@
 import { type ReactElement, useEffect, useRef } from "react";
 import Game from "../game/engine/Game.ts";
-import Room1 from "../game/main/rooms/room1.ts";
+import Room1 from "../game/main/rooms/Room1.ts";
 
 export default function Screen({ children }: { children?: ReactElement }) {
 	

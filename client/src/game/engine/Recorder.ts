@@ -19,6 +19,7 @@ export default class Recorder extends Snapshotable {
 	
 	
 	private static snapshot(): void {
+		console.log("trying to snapshot")
 		if(Recorder.#state !== "recording") return;
 		Recorder.#snapshots!.push(Date.now(), GameState.snapshot());
 	}
@@ -32,13 +33,13 @@ export default class Recorder extends Snapshotable {
 	public static start(tickRate: Hertz = Game.maxFrameRate, windowSize: number = Game.maxFrameRate * 5): void {
 		if(Recorder.#state === "recording" || Recorder.#state === "paused") return;
 		this.#snapshots = new TimeWindow(windowSize, 1000 / tickRate);
-		this.#snapshots = new TimeWindow(Game.maxFrameRate / tickRate, 1000 / Game.maxFrameRate);
+		this.#inputs = new TimeWindow(windowSize * Game.maxFrameRate / tickRate, 1000 / Game.maxFrameRate);
 		this.#state = "recording";
 		
 		Recorder.#snapshotsRepeatableId =
 			Game.addRepeatable(new SnapshotableClosure(Recorder, Recorder.snapshot), tickRate);
 		Recorder.#inputsRepeatableId =
-			Game.addRepeatable(new SnapshotableClosure(Recorder, Recorder.saveInputs), Game.maxFrameRate)
+			Game.addRepeatable(new SnapshotableClosure(Recorder, Recorder.saveInputs), Game.maxFrameRate);
 	}
 	
 	
@@ -63,8 +64,9 @@ export default class Recorder extends Snapshotable {
 	
 	
 	public static rewindAndReplay(timeStamp: Time): void {
-		const snapshot = Recorder.#snapshots?.getAtTime(timeStamp);
-		if(!snapshot) throw new Error(`Cannot rewind to time ${timeStamp} because it was not recorded`);
+		const snapshot = Recorder.#snapshots!.getAtTime(timeStamp);
+		if(!snapshot) throw new Error(`(snapshot) Cannot rewind to time ${timeStamp} because it was not recorded
+										${JSON.stringify(Recorder.#snapshots!.data)}`);
 		
 		Recorder.pause();
 		
@@ -72,7 +74,8 @@ export default class Recorder extends Snapshotable {
 		SnapshotableTime.setTime(snapshot.timeStamp);
 		
 		const startIndex = Recorder.#inputs!.getIndexAtTime(snapshot.timeStamp);
-		if(startIndex === -1) throw new Error(`Cannot rewind to time ${timeStamp} because it was not recorded`);
+		if(startIndex === -1) throw new Error(`(inputs) Cannot rewind to time ${timeStamp} because it was not recorded
+										${JSON.stringify(Recorder.#inputs!.data)}`);
 		
 		Game.replay(Recorder.#inputs!, startIndex);
 		

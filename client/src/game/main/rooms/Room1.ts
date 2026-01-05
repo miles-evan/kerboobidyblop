@@ -7,10 +7,9 @@ import HealthMeter from "../objects/HealthMeter.ts";
 import GameState from "../../engine/GameState.ts";
 import Snapshotable from "../../engine/Snapshotable.ts";
 import SnapshotableClosure from "../../engine/SnapshotableClosure.ts";
+import Recorder from "../../engine/Recorder.ts";
 
 export default class Room1 extends Snapshotable {
-	
-	private static testing: boolean = false;
 	
 	static {
 		GameState.registerConstructor(Room1);
@@ -35,15 +34,11 @@ export default class Room1 extends Snapshotable {
 	}
 	
 	private static test(): void {
-		if(Game.isKeyPressed("Escape") && !Room1.testing) {
-			Room1.testing = true;
-			const snapshot = GameState.snapshot();
-			console.log(JSON.parse(JSON.stringify(snapshot)));
-			setTimeout(() => {
-				GameState.recover(snapshot);
-				Room1.testing = false;
-			}, 1000);
-		}
+		if(Game.isKeyPressed("1"))
+			Recorder.start();
+		if(Game.isKeyPressed("2"))
+			Recorder.rewindAndReplay(Date.now() - 3000);
+		
 	}
 	
 	public static snapshotClassStatics(): ClassStatics {

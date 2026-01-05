@@ -72,6 +72,7 @@ export default class TimeWindow<T> {
 			pair = this.data[index]!;
 		}
 		
+		// todo: fix logic to compare to previous, not first index
 		const closerIndex =
 			Math.abs(this.data[guessIndex]!.timeStamp - timeStamp) <
 			Math.abs(pair.timeStamp - timeStamp)
