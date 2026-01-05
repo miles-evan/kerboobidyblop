@@ -190,6 +190,10 @@ export default class Game extends Snapshotable {
 		return timePressed !== undefined && Game.justHappened(timePressed.value);
 	}
 	
+	public static get keysDownObject(): Record<string, SnapshotableTime> {
+		return { ...Game.keysDown };
+	}
+	
 	
 	public static get virtualScreenSizeMultiplier(): number {
 		if(!Game.#screen)

@@ -7,12 +7,12 @@ export default class TimeWindow<T> {
 	
 	private readonly data: Pair<T>[];
 	private readonly windowSize: number;
-	private readonly estimatedTimeGap: Time;
+	private readonly estimatedTimeGap: Milliseconds;
 	private headIndex: number = 0; // where start is
 	private nextTailIndex: number = 0; // where next element will be pushed
 	
 	
-	public constructor(windowSize: number, estimatedTimeGap: Time) {
+	public constructor(windowSize: number, estimatedTimeGap: Milliseconds) {
 		this.data = new Array(windowSize);
 		this.windowSize = windowSize;
 		this.estimatedTimeGap = estimatedTimeGap;
@@ -36,12 +36,17 @@ export default class TimeWindow<T> {
 		return (index - 1 + this.windowSize) % this.windowSize;
 	}
 	
+	private inTimeRange(timeStamp: Time): boolean {
+		return timeStamp >= this.data[this.headIndex]!.timeStamp && timeStamp <= this.data[this.lastIndex]!.timeStamp;
+	}
+
 	
 	public push(timeStamp: number, value: T): void {
 		this.data[this.nextTailIndex] = { timeStamp, value };
 		this.incrementTail();
 		if(this.headIndex === this.nextTailIndex) this.incrementHead();
 	}
+	
 	
 	public getAtTime(timeStamp: Time): T | null {
 		if(!this.inTimeRange(timeStamp)) return null;
@@ -64,11 +69,6 @@ export default class TimeWindow<T> {
 		
 		return Math.abs(guessPair.timeStamp - timeStamp) < Math.abs(pair.timeStamp - timeStamp)?
 			guessPair.value : pair.value; // return the closer one
-	}
-	
-	
-	private inTimeRange(timeStamp: Time): boolean {
-		return timeStamp >= this.data[this.headIndex]!.timeStamp && timeStamp <= this.data[this.lastIndex]!.timeStamp;
 	}
 	
 }
