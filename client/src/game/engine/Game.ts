@@ -7,7 +7,7 @@ import Snapshotable from "./Snapshotable.ts";
 import TimeWindow from "./TimeWindow.ts";
 
 
-export default class Game extends Snapshotable {
+export default class Game {
 	// naming scheme: regularField, _backingField, __avoidUsingUnlessYouHaveToField, #excludedFromStateField
 	public static __gameObjects: GameObject[] = [];
 	public static instanceCount: number = 0;
@@ -295,21 +295,29 @@ export default class Game extends Snapshotable {
 	
 	// lets you replay and simulate inputs quickly
 	public static replay(inputs: TimeWindow<Record<Key, SnapshotableTime>>, startIndex: number): void {
+		Game.stop();
+		
 		// so the first delta time is correct:
 		Game.currentFrameTimeStamp = new SnapshotableTime(startIndex === 0?
 			inputs.getAtIndex(0).timeStamp - 1000 / Game.maxFrameRate
 			: inputs.getAtIndex(startIndex - 1).timeStamp
 		);
 		
+		// replay each frame
 		for(let i = startIndex; i < inputs.windowSize; i ++) {
+			console.log(`replay frame ${i}`)
 			const currentInputs = inputs.getAtIndex(i);
 			SnapshotableTime.setTime(currentInputs.timeStamp);
 			Game.keysDown = currentInputs.value;
 			Game.step(false);
 		}
 		
+		// reset everything
 		SnapshotableTime.resetTime();
+		Game.currentFrameTimeStamp = new SnapshotableTime(Date.now() - 1000 / Game.maxFrameRate);
 		Game.keysDown = {};
+		
+		Game.start();
 	}
 	
 	

@@ -1,9 +1,9 @@
 import Game from "./Game.ts";
-import Snapshotable from "./Snapshotable.ts";
 import GameState from "./GameState.ts";
 import SnapshotableClosure from "./SnapshotableClosure.ts";
 import TimeWindow from "./TimeWindow.ts";
 import SnapshotableTime from "./SnapshotableTime.ts";
+import Snapshotable from "./Snapshotable.ts";
 
 
 export default class Recorder extends Snapshotable {
@@ -18,7 +18,7 @@ export default class Recorder extends Snapshotable {
 	static #inputsRepeatableId: RepeatableId = -1;
 	
 	
-	private static snapshot(): void {
+	private static saveSnapshot(): void {
 		console.log("trying to snapshot")
 		if(Recorder.#state !== "recording") return;
 		Recorder.#snapshots!.push(Date.now(), GameState.snapshot());
@@ -37,7 +37,7 @@ export default class Recorder extends Snapshotable {
 		this.#state = "recording";
 		
 		Recorder.#snapshotsRepeatableId =
-			Game.addRepeatable(new SnapshotableClosure(Recorder, Recorder.snapshot), tickRate);
+			Game.addRepeatable(new SnapshotableClosure(Recorder, Recorder.saveSnapshot), tickRate);
 		Recorder.#inputsRepeatableId =
 			Game.addRepeatable(new SnapshotableClosure(Recorder, Recorder.saveInputs), Game.maxFrameRate);
 	}
@@ -66,7 +66,7 @@ export default class Recorder extends Snapshotable {
 	public static rewindAndReplay(timeStamp: Time): void {
 		const snapshot = Recorder.#snapshots!.getAtTime(timeStamp);
 		if(!snapshot) throw new Error(`(snapshot) Cannot rewind to time ${timeStamp} because it was not recorded
-										${JSON.stringify(Recorder.#snapshots!.data)}`);
+										${JSON.stringify(Recorder.#snapshots!["data"])}`);
 		
 		Recorder.pause();
 		
@@ -75,7 +75,7 @@ export default class Recorder extends Snapshotable {
 		
 		const startIndex = Recorder.#inputs!.getIndexAtTime(snapshot.timeStamp);
 		if(startIndex === -1) throw new Error(`(inputs) Cannot rewind to time ${timeStamp} because it was not recorded
-										${JSON.stringify(Recorder.#inputs!.data)}`);
+										${JSON.stringify(Recorder.#inputs!["data"])}`);
 		
 		Game.replay(Recorder.#inputs!, startIndex);
 		

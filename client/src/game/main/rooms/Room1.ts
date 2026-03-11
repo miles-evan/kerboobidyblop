@@ -9,7 +9,7 @@ import Snapshotable from "../../engine/Snapshotable.ts";
 import SnapshotableClosure from "../../engine/SnapshotableClosure.ts";
 import Recorder from "../../engine/Recorder.ts";
 
-export default class Room1 extends Snapshotable {
+export default class Room1 {
 	
 	static {
 		GameState.registerConstructor(Room1);
