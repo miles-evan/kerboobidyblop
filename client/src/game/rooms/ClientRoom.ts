@@ -1,11 +1,11 @@
-import Board from "../client/src/game/objects/Board.ts";
+import Board from "../objects/Board.ts";
 import Game from "@engine/main/Game.ts";
-import CastPadPlayer from "../client/src/game/castHandlers/CastPadPlayer.ts";
-import Fluxometer from "../client/src/game/objects/Fluxometer.ts";
-import HealthMeter from "../client/src/game/objects/HealthMeter.ts";
-import DoNothingPlayer from "../client/src/game/castHandlers/DoNothingPlayer.ts";
-import ClientPlayer from "./ClientPlayer.ts";
-import Client from "../client/src/game/networking/Client.ts";
+import CastPadPlayer from "../castHandlers/CastPadPlayer.ts";
+import Fluxometer from "../objects/Fluxometer.ts";
+import HealthMeter from "../objects/HealthMeter.ts";
+import DoNothingPlayer from "../castHandlers/DoNothingPlayer.ts";
+import ClientPlayer from "../castHandlers/ClientPlayer.ts";
+import Client from "../networking/Client.ts";
 
 export default class ClientRoom {
 	

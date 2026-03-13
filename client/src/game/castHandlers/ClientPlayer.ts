@@ -1,7 +1,7 @@
-import Player from "../client/src/game/castHandlers/Player.ts";
-import type HealthMeter from "../client/src/game/objects/HealthMeter.ts";
-import type Fluxometer from "../client/src/game/objects/Fluxometer.ts";
-import type Client from "../client/src/game/networking/Client.ts";
+import Player from "./Player.ts";
+import type HealthMeter from "../objects/HealthMeter.ts";
+import type Fluxometer from "../objects/Fluxometer.ts";
+import type Client from "../networking/Client.ts";
 
 
 // a client player is a local player that makes moves on this computer, then sends the cast to the socket

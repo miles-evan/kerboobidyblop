@@ -2,6 +2,7 @@ import * as React from "react";
 import { useEffect, useRef } from "react";
 import Game from "@engine/main/Game.ts";
 import Room1 from "./game/rooms/Room1.ts";
+import ClientRoom from "./game/rooms/ClientRoom.ts";
 
 export default function Screen({ children, startFnRef }:
 	{ children?: React.ReactNode, startFnRef: React.RefObject<((mode: "local" | "host" | "client") => void) | null> }
@@ -24,7 +25,7 @@ export default function Screen({ children, startFnRef }:
 		
 		// load room
 		// ({ local: Room1, host: HostRoom, client: ClientRoom })[mode].load();
-		Room1.load();
+		mode == "local"? Room1.load() : ClientRoom.load();
 		return true;
 	}
 	
