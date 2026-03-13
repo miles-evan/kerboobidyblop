@@ -3,24 +3,23 @@ import HtmlView from "@engine/main/HtmlView.ts";
 
 // outlines the interface with a type of view, such as an HTML view
 // it is the View implementation's responsibility to call the game object's onClick etc.
+// implementations' constructors must take onMouseDown as the first argument
 export default abstract class View {
 	
-	protected onMouseDown: (buttonNumber: number) => void;
+	protected onMouseDown: (button: number) => void;
 	public static currentViewType: ConcreteConstructor<View> = HtmlView;
 	
 	
-	protected constructor(onMouseDown: (buttonNumber: number) => void) {
+	protected constructor(onMouseDown: (button: number) => void) {
 		this.onMouseDown = onMouseDown;
 	}
 	
 	
-	public static new(...args: any[]): View {
-		return new View.currentViewType(...args);
+	public static new(onMouseDown: (button: number) => void, ...args: any[]): View {
+		return new View.currentViewType(onMouseDown, ...args);
 	}
 	
 	
-	// updates things like position and sprite image
-	// give sprite as null if sprite shouldn't be updated this frame
 	abstract update(
 		left: Pixels,
 		top: Pixels,
@@ -28,6 +27,11 @@ export default abstract class View {
 		height: Pixels,
 		rotation: Degrees,
 		opacity: number,
-		sprite: string | null,
+		depth: number,
 	): void;
+	
+	abstract updateSprite(sprite: string): void;
+	
+	abstract destroy(): void;
+	
 }

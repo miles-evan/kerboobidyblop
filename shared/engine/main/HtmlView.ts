@@ -26,7 +26,7 @@ export default class HtmlView extends View {
 		height: Pixels,
 		rotation: Degrees,
 		opacity: number,
-		sprite: string | null
+		depth: number,
 	): void {
 		this.element.style.left = left + "px";
 		this.element.style.top = top + "px";
@@ -34,8 +34,17 @@ export default class HtmlView extends View {
 		this.element.style.height = height + "px";
 		this.element.style.transform = "rotate(" + rotation + "deg)";
 		this.element.style.opacity = String(opacity);
-		if(sprite) this.element.style.backgroundImage = "url(" + sprite + ")";
+		this.element.style.zIndex = String(-depth);
 	}
 	
+	
+	public updateSprite(sprite: string) {
+		this.element.style.backgroundImage = "url(" + sprite + ")";
+	}
+	
+	
+	public destroy(): void {
+		this.element.remove();
+	}
 	
 }

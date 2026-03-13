@@ -1,11 +1,12 @@
 import Game from "./Game.ts";
 import SnapshotableClosure from "../multiplayer/SnapshotableClosure.ts";
 import Snapshotable from "../multiplayer/Snapshotable.ts";
+import View from "@engine/main/View.ts";
 
 
 export default abstract class GameObject extends Snapshotable {
 	
-	public __object: HTMLDivElement;
+	private view: View;
 	public left: Pixels = 0;
 	public top: Pixels = 0;
 	private _width: Pixels = 0;
@@ -26,6 +27,7 @@ export default abstract class GameObject extends Snapshotable {
 	private animationRepeatableId: RepeatableId | null = null;
 	private _imageIndex: number = 0;
 	public opacity: number = 1;
+	public depth: number = 0 // higher depth = further into the screen (further behind)
 	public onClick: AnyFunction | SnapshotableClosure | null = null;
 	public onRightClick: AnyFunction | SnapshotableClosure | null = null;
 	public onMiddleClick: AnyFunction | SnapshotableClosure | null = null;
@@ -37,11 +39,7 @@ export default abstract class GameObject extends Snapshotable {
 	) {
 		super();
 		
-		this.__object = document.createElement("div");
-		this.__object.style.position = "absolute"
-		this.__object.style.backgroundRepeat = "no-repeat"
-		this.__object.style.backgroundSize = "100% 100%"
-		this.__object.style.imageRendering = "pixelated";
+		this.view = View.new((button: number) => this.onMouseDown(button));
 		
 		this.originX = originX;
 		this.originY = originY;
@@ -57,8 +55,6 @@ export default abstract class GameObject extends Snapshotable {
 		
 		this.setHitbox(hitboxWidth, hitboxHeight);
 		
-		this.__object.addEventListener("mousedown", e => this.onMouseDown(e));
-		
 		Game.__appendGameObject(this);
 	}
 	
@@ -70,15 +66,21 @@ export default abstract class GameObject extends Snapshotable {
 		
 		const roundOrNot: (x: Pixels) => Pixels = Game.lockPositionsToVirtualPixels? Math.round : x => x;
 		const ceilOrNot: (x: Pixels) => Pixels = Game.lockPositionsToVirtualPixels? Math.ceil : x => x;
-		this.__object.style.left = roundOrNot(this.left) * Game.virtualScreenSizeMultiplier + "px";
-		this.__object.style.top = roundOrNot(this.top) * Game.virtualScreenSizeMultiplier + "px";
-		this.__object.style.width = ceilOrNot(this._width) * Game.virtualScreenSizeMultiplier + "px";
-		this.__object.style.height = ceilOrNot(this._height) * Game.virtualScreenSizeMultiplier + "px";
-		this.__object.style.transform = "rotate(" + this.rotation + "deg)";
-		this.__object.style.opacity = String(this.opacity);
+		
+		this.view.update(
+			roundOrNot(this.left) * Game.virtualScreenSizeMultiplier,
+			roundOrNot(this.top) * Game.virtualScreenSizeMultiplier,
+			ceilOrNot(this._width) * Game.virtualScreenSizeMultiplier,
+			ceilOrNot(this._height) * Game.virtualScreenSizeMultiplier,
+			this.rotation,
+			this.opacity,
+			this.depth,
+		);
+		
+		// update sprite
 		if(this.spriteChanged && this.sprite)
 			Game.preloadImage(this.sprite)
-				.then(() => this.__object.style.backgroundImage = "url(" + this.sprite + ")");
+				.then(() => this.view.updateSprite(this.sprite!));
 	}
 	
 	
@@ -280,21 +282,12 @@ export default abstract class GameObject extends Snapshotable {
 	}
 	
 	
-	// higher depth = further into the screen (further behind)
-	public get depth(): number {
-		return -Number(this.__object.style.zIndex);
-	}
-	public set depth(depth: number) {
-		this.__object.style.zIndex = String(-depth);
-	}
-	
-	
-	private onMouseDown(e: MouseEvent): void {
-		if(e.button === 0)
+	private onMouseDown(button: number): void {
+		if(button === 0) // left click
 			this.onClick instanceof SnapshotableClosure? this.onClick.run() : this.onClick?.();
-		else if(e.button === 1)
+		else if(button === 1) // middle click
 			this.onMiddleClick instanceof SnapshotableClosure? this.onMiddleClick.run() : this.onMiddleClick?.();
-		else if(e.button === 2)
+		else if(button === 2) // right click
 			this.onRightClick instanceof SnapshotableClosure? this.onRightClick.run() : this.onRightClick?.();
 	}
 	
@@ -330,7 +323,7 @@ export default abstract class GameObject extends Snapshotable {
 	
 	public destroy(): void {
 		super.destroy();
-		this.__object.remove();
+		this.view.destroy();
 		Game.__popGameObject(this);
 		Game.removeRepeatable(this.animationRepeatableId);
 	}
@@ -340,20 +333,21 @@ export default abstract class GameObject extends Snapshotable {
 	
 	
 	// -------------------------------- snapshot recovery
+	// This section has been commented out since decoupling GameObject from the DOM
+	// todo: re-implement this section to make GameObject once again state-safe
 	
-	
-	protected recoverReplace(objectSnapshot: Like<GameObject>): void {
-		if(!(this.__object instanceof Element)) throw new Error(`__object isn't an HTML element. it's: ${this.__object} and my id is ${this.id}`)
-		this.__object.remove(); // remove HTML element since we'll create a new one
-		super.recoverReplace(objectSnapshot);
-		this.__object.addEventListener("mousedown", e => this.onMouseDown(e)); // must be added back
-	}
-	
-	protected static recoverCreate(objectSnapshot: Like<GameObject>): GameObject {
-		const obj = super.recoverCreate(objectSnapshot) as GameObject;
-		if(!(obj.__object instanceof Element)) throw new Error(`__object isn't an HTML element. it's: ${obj.__object} and my id is ${obj.id}`)
-		obj.__object.addEventListener("mousedown", e => obj.onMouseDown(e)); // must be added back
-		return obj;
-	}
+	// protected recoverReplace(objectSnapshot: Like<GameObject>): void {
+	// 	if(!(this.__object instanceof Element)) throw new Error(`__object isn't an HTML element. it's: ${this.__object} and my id is ${this.id}`)
+	// 	this.__object.remove(); // remove HTML element since we'll create a new one
+	// 	super.recoverReplace(objectSnapshot);
+	// 	this.__object.addEventListener("mousedown", e => this.onMouseDown(e)); // must be added back
+	// }
+	//
+	// protected static recoverCreate(objectSnapshot: Like<GameObject>): GameObject {
+	// 	const obj = super.recoverCreate(objectSnapshot) as GameObject;
+	// 	if(!(obj.__object instanceof Element)) throw new Error(`__object isn't an HTML element. it's: ${obj.__object} and my id is ${obj.id}`)
+	// 	obj.__object.addEventListener("mousedown", e => obj.onMouseDown(e)); // must be added back
+	// 	return obj;
+	// }
 	
 }
