@@ -12,6 +12,7 @@ declare global {
 	}
 	type AppendableObject = { [key: string]: any };
 	type Constructor<T> = abstract new (...args: any[]) => T;
+	type ConcreteConstructor<T> = new (...args: any[]) => T;
 	type GameObjectClass = Constructor<GameObject>;
 	type SnapshotableClass = Constructor<Snapshotable>;
 	type ClassStatics = Record<string, any>; // because TS complains about Constructor<> if it's a protected constructor
