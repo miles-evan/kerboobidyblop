@@ -74,7 +74,7 @@ export default function App() {
 
 	return (
 		<>
-			<h1>Kerboobidyblop 4</h1>
+			<h1>Kerboobidyblop</h1>
 
 			{status && <p>{status}</p>}
 
