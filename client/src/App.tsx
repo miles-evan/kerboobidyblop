@@ -7,7 +7,9 @@ import NetworkClient from "./game/main/net/NetworkClient.ts";
 import type { PlayerNum } from "./game/main/net/protocol.ts";
 
 
-const SERVER_URL: string = import.meta.env.VITE_SERVER_URL ?? `ws://${location.hostname}:8787`;
+// the public (port-forwarded) address of the game server;
+// override with VITE_SERVER_URL (e.g. ws://localhost:8787 in .env.local for local dev)
+const SERVER_URL: string = import.meta.env.VITE_SERVER_URL ?? "ws://68.198.104.255:8787";
 
 type Mode =
 	| { kind: "menu" }
