@@ -1,6 +1,7 @@
 import GameObject from "../../engine/GameObject.ts";
 import Game from "../../engine/Game.ts";
 import SpellTrail from "./SpellTrail.ts";
+import { spellSprites } from "../sprites/sprites.ts";
 import type Board from "./Board.ts";
 
 
@@ -20,7 +21,7 @@ export default class Spell extends GameObject {
 	static lastTileTickTime: Time = 0;
 	
 	constructor(x: number, y: number, lane: Lane, tier: Tier, playerNum: PlayerNum, power: Power = "none", board: Board) {
-		super(x, y, 16, 16, `/src/game/main/sprites/spells/spell-player${playerNum}-tier${tier}.png`);
+		super(x, y, 16, 16, spellSprites[playerNum][tier]);
 		this.lane = lane;
 		this.tier = tier;
 		this.playerNum = playerNum;

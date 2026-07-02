@@ -1,0 +1,21 @@
+[Unit]
+Description=Kerboobidyblop game server
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=exposed
+WorkingDirectory=/home/exposed/kerboobidyblop/server
+ExecStart=/home/exposed/.local/node/bin/node /home/exposed/kerboobidyblop/server/node_modules/.bin/tsx src/index.ts
+Restart=always
+RestartSec=3
+
+# hardening
+NoNewPrivileges=true
+ProtectSystem=full
+ProtectHome=read-only
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

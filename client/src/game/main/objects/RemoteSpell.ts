@@ -2,6 +2,7 @@ import GameObject from "../../engine/GameObject.ts";
 import Game from "../../engine/Game.ts";
 import Spell from "./Spell.ts";
 import SpellTrail from "./SpellTrail.ts";
+import { spellSprites } from "../sprites/sprites.ts";
 import type { Power, Tier, PlayerNum } from "../net/protocol.ts";
 
 
@@ -16,7 +17,7 @@ export default class RemoteSpell extends GameObject {
 	private readonly trailRepeatableId: RepeatableId;
 
 	constructor(x: number, y: number, tier: Tier, playerNum: PlayerNum, power: Power) {
-		super(x, y, 16, 16, `/src/game/main/sprites/spells/spell-player${playerNum}-tier${tier}.png`);
+		super(x, y, 16, 16, spellSprites[playerNum][tier]);
 		this.power = power;
 		this.prevX = x;
 		this.prevY = y;

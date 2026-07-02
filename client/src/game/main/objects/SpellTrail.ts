@@ -1,13 +1,14 @@
 import GameObject from "../../engine/GameObject.ts";
 import Game from "../../engine/Game.ts";
+import { spellTrailSprites } from "../sprites/sprites.ts";
 
 export default class SpellTrail extends GameObject {
-	
+
 	initialOpacity: number;
 	static readonly lifeTime: Seconds = 1;
-	
+
 	constructor(x: number, y: number, power: Power) {
-		super(x, y, 16, 16, `/src/game/main/sprites/spell-trails/spell-trail-${power}.png`);
+		super(x, y, 16, 16, spellTrailSprites[power]);
 		
 		this.initialOpacity = {
 			"none": 0.5,

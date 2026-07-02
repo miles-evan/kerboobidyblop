@@ -1,3 +1,6 @@
+import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
+import { readFile } from "node:fs/promises";
+import { extname, join, normalize, resolve, sep } from "node:path";
 import { WebSocketServer, WebSocket } from "ws";
 import type { ClientMessage, ServerMessage } from "./protocol.ts";
 import { HEARTBEAT_INTERVAL_MS } from "./constants.ts";
@@ -7,7 +10,48 @@ import GameRoom from "./GameRoom.ts";
 
 const PORT: number = Number(process.env["PORT"] ?? 8787);
 
-const wss = new WebSocketServer({ port: PORT });
+// the built client (client/dist) is served from here on the same port as the websocket
+const STATIC_DIR: string = resolve(process.env["STATIC_DIR"] ?? "public");
+
+const MIME_TYPES: Record<string, string> = {
+	".html": "text/html",
+	".js": "text/javascript",
+	".css": "text/css",
+	".png": "image/png",
+	".svg": "image/svg+xml",
+	".ico": "image/x-icon",
+	".json": "application/json",
+	".map": "application/json",
+};
+
+async function serveStatic(req: IncomingMessage, res: ServerResponse): Promise<void> {
+	const urlPath: string = decodeURIComponent((req.url ?? "/").split("?")[0]!);
+	let filePath: string = normalize(join(STATIC_DIR, urlPath));
+	if(filePath !== STATIC_DIR && !filePath.startsWith(STATIC_DIR + sep)) {
+		res.writeHead(403);
+		res.end("forbidden");
+		return;
+	}
+
+	try {
+		let data: Buffer;
+		try {
+			data = await readFile(filePath);
+		} catch {
+			// not a file (or missing) — serve the app shell
+			filePath = join(STATIC_DIR, "index.html");
+			data = await readFile(filePath);
+		}
+		res.writeHead(200, { "Content-Type": MIME_TYPES[extname(filePath)] ?? "application/octet-stream" });
+		res.end(data);
+	} catch {
+		res.writeHead(404);
+		res.end("not found — is the built client deployed to " + STATIC_DIR + "?");
+	}
+}
+
+const httpServer = createServer((req, res) => { void serveStatic(req, res); });
+const wss = new WebSocketServer({ server: httpServer });
 const roomManager = new RoomManager();
 
 const aliveSockets: WeakSet<WebSocket> = new WeakSet();
@@ -96,4 +140,6 @@ setInterval(() => {
 }, HEARTBEAT_INTERVAL_MS);
 
 
-console.log(`kerboobidyblop server listening on ws://localhost:${PORT}`);
+httpServer.listen(PORT, () => {
+	console.log(`kerboobidyblop server listening on http://localhost:${PORT} (ws + static from ${STATIC_DIR})`);
+});

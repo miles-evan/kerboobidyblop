@@ -7,9 +7,13 @@ import NetworkClient from "./game/main/net/NetworkClient.ts";
 import type { PlayerNum } from "./game/main/net/protocol.ts";
 
 
-// the public (port-forwarded) address of the game server;
-// override with VITE_SERVER_URL (e.g. ws://localhost:8787 in .env.local for local dev)
-const SERVER_URL: string = import.meta.env.VITE_SERVER_URL ?? "ws://68.198.104.255:8787";
+// In production the page is served under BASE_URL (/kerboobidyblop/) behind an
+// https reverse proxy, and the websocket lives on the same origin and path.
+// In dev, connect straight to a local game server. Override with VITE_SERVER_URL.
+const SERVER_URL: string = import.meta.env.VITE_SERVER_URL
+	?? (import.meta.env.DEV
+		? `ws://${location.hostname}:8787`
+		: `${location.protocol === "https:"? "wss:" : "ws:"}//${location.host}${import.meta.env.BASE_URL}`);
 
 type Mode =
 	| { kind: "menu" }
