@@ -1,24 +1,25 @@
 import { type ReactElement, useEffect, useRef } from "react";
 import Game from "../game/engine/Game.ts";
-import room1 from "../game/main/rooms/room1.ts";
 
-export default function Screen({ children }: { children?: ReactElement }) {
-	
+export default function Screen({ setup, children }: { setup: () => void, children?: ReactElement }) {
+
 	const screenRef = useRef<HTMLDivElement>(null);
-	
-	
+	const setupRef = useRef(setup);
+	setupRef.current = setup;
+
+
 	useEffect(() => {
 		const cleanup = () => {Game.destroy();};
-		
+
 		if(!screenRef.current) return cleanup;
 		if(!Game.init(screenRef.current)) return cleanup;
 		if(!Game.start()) return cleanup;
-		room1();
-		
+		setupRef.current();
+
 		return cleanup;
 	}, []);
-	
-	
+
+
 	return (
 		<div
 			ref={screenRef}
@@ -33,5 +34,5 @@ export default function Screen({ children }: { children?: ReactElement }) {
 			{children}
 		</div>
 	);
-	
+
 }
