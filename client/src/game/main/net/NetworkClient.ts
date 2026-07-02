@@ -1,5 +1,5 @@
 import type {
-	ClientMessage, ServerMessage, Snapshot, StartMessage, CastResultMessage,
+	ClientMessage, ServerMessage, Snapshot, StartMessage, CastResultMessage, GameOverMessage,
 	Tier, Power, Lane,
 } from "./protocol.ts";
 
@@ -13,6 +13,7 @@ export default class NetworkClient {
 	onStart: ((message: StartMessage) => void) | null = null;
 	onSnapshot: ((snapshot: Snapshot) => void) | null = null;
 	onCastResult: ((message: CastResultMessage) => void) | null = null;
+	onGameOver: ((message: GameOverMessage) => void) | null = null;
 	onOpponentLeft: (() => void) | null = null;
 	onError: ((message: string) => void) | null = null;
 	onClose: (() => void) | null = null;
@@ -47,6 +48,7 @@ export default class NetworkClient {
 			case "start": this.onStart?.(message); return;
 			case "snapshot": this.onSnapshot?.(message); return;
 			case "castResult": this.onCastResult?.(message); return;
+			case "gameOver": this.onGameOver?.(message); return;
 			case "opponentLeft": this.onOpponentLeft?.(); return;
 			case "error": this.onError?.(message.message); return;
 		}

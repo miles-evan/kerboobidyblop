@@ -44,6 +44,20 @@ export default class Simulation {
 	}
 
 
+	damagePlayer(playerNum: PlayerNum, damage: number): void {
+		const player: PlayerState = this.players[playerNum];
+		player.health = Math.max(0, player.health - damage);
+	}
+
+	// null while the game is ongoing, 0 for a draw, otherwise the winning player
+	get winner(): PlayerNum | 0 | null {
+		const [dead1, dead2] = [this.players[1].health <= 0, this.players[2].health <= 0];
+		if(!dead1 && !dead2) return null;
+		if(dead1 && dead2) return 0;
+		return dead1? 2 : 1;
+	}
+
+
 	// lane 0 is left most col, rank 0 is bottom most row (Board.getPositionOfTile)
 	static getPositionOfTile(lane: Lane, rank: number): [number, number] {
 		return [TOP_LEFT_TILE_X + TILE_SIZE * lane, TOP_LEFT_TILE_Y + TILE_SIZE * (9 - rank)];

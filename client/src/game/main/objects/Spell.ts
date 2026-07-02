@@ -15,6 +15,7 @@ export default class Spell extends GameObject {
 	
 	static readonly secondsPerTile: Seconds = 1.5;
 	static readonly velocity: PixelsPerSecond = 16 / Spell.secondsPerTile;
+	static readonly damagePerTier: number = 5;
 	static tileTickRepeatableId: RepeatableId | null = null;
 	static lastTileTickTime: Time = 0;
 	
@@ -153,8 +154,16 @@ export default class Spell extends GameObject {
 			this.xVelocity = 0;
 		}
 		
-		if(this.top > Game.screenHeight || this.bottom < 0)
+		// reaching the far side damages the player there (but not your own side, e.g. a fleeing retreater)
+		if(this.top > Game.screenHeight) {
+			if(this.playerNum === 2)
+				this.board.damagePlayer(1, Spell.damagePerTier * this.tier);
 			this.destroy();
+		} else if(this.bottom < 0) {
+			if(this.playerNum === 1)
+				this.board.damagePlayer(2, Spell.damagePerTier * this.tier);
+			this.destroy();
+		}
 	}
 	
 	destroy() {

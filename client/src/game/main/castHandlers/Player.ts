@@ -1,12 +1,13 @@
 import Spell from "../objects/Spell.ts";
 
 export default abstract class Player {
-	
-	health: number; // Should be between 0 and 10, but I don't think there's a way to enforce that
+
+	static readonly maxHealth: number = 100;
+	health: number; // between 0 and maxHealth
 	flux: number;
-	
+
 	protected constructor() {
-		this.health = 100;
+		this.health = Player.maxHealth;
 		this.flux = 0;
 	}
 	

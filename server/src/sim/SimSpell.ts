@@ -1,6 +1,7 @@
 import type { Lane, Tier, PlayerNum, Power, SpellState } from "../protocol.ts";
 import {
 	SPELL_SIZE, SPELL_VELOCITY, SCREEN_HEIGHT, TOP_LEFT_TILE_X, TILE_SIZE, TIER_ELIMINATION_MAP,
+	DAMAGE_PER_TIER,
 } from "../constants.ts";
 import type Simulation from "./Simulation.ts";
 
@@ -132,8 +133,16 @@ export default class SimSpell {
 			this.xVelocity = 0;
 		}
 
-		if(this.y > SCREEN_HEIGHT || this.y + SPELL_SIZE < 0)
+		// reaching the far side damages the player there (but not your own side, e.g. a fleeing retreater)
+		if(this.y > SCREEN_HEIGHT) {
+			if(this.playerNum === 2)
+				sim.damagePlayer(1, DAMAGE_PER_TIER * this.tier);
 			this.dead = true;
+		} else if(this.y + SPELL_SIZE < 0) {
+			if(this.playerNum === 1)
+				sim.damagePlayer(2, DAMAGE_PER_TIER * this.tier);
+			this.dead = true;
+		}
 	}
 
 	applyVelocity(deltaTime: number): void {

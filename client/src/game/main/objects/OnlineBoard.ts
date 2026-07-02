@@ -3,6 +3,9 @@ import Game from "../../engine/Game.ts";
 import boardSprite from "../sprites/board.png";
 import Spell from "./Spell.ts";
 import RemoteSpell from "./RemoteSpell.ts";
+import FluxBar from "./FluxBar.ts";
+import HealthBar from "./HealthBar.ts";
+import GameOverText from "./GameOverText.ts";
 import RemotePlayer from "../castHandlers/RemotePlayer.ts";
 import KeyboardInputPlayer from "../castHandlers/KeyboardInputPlayer.ts";
 import type NetworkClient from "../net/NetworkClient.ts";
@@ -21,6 +24,7 @@ export default class OnlineBoard extends GameObject {
 	private readonly localPlayer: RemotePlayer = new RemotePlayer();
 	private readonly opponent: RemotePlayer = new RemotePlayer();
 	private readonly input: KeyboardInputPlayer = new KeyboardInputPlayer();
+	private gameOver: boolean = false;
 
 	constructor(net: NetworkClient, localPlayerNum: PlayerNum) {
 		super(0, 0, 64, 180, boardSprite);
@@ -31,6 +35,17 @@ export default class OnlineBoard extends GameObject {
 		this.net = net;
 		this.localPlayerNum = localPlayerNum;
 		net.onSnapshot = snapshot => this.buffer.add(snapshot);
+		net.onGameOver = message => {
+			this.gameOver = true;
+			new GameOverText(
+				message.winner === 0? "Draw!"
+				: message.winner === this.localPlayerNum? "You win!" : "You lose!"
+			);
+		};
+
+		new FluxBar(this.localPlayer); // only your own flux is visible
+		new HealthBar(this.localPlayer, "bottom");
+		new HealthBar(this.opponent, "top");
 	}
 
 
@@ -54,7 +69,8 @@ export default class OnlineBoard extends GameObject {
 
 
 	step(): void {
-		this.handleInput();
+		if(!this.gameOver)
+			this.handleInput();
 
 		const state = this.buffer.getInterpolatedState();
 		if(!state) return;
@@ -94,6 +110,7 @@ export default class OnlineBoard extends GameObject {
 		this.remoteSpells.forEach(spell => spell.destroy());
 		this.remoteSpells.clear();
 		this.net.onSnapshot = null;
+		this.net.onGameOver = null;
 	}
 
 }

@@ -47,10 +47,16 @@ to point elsewhere.
 - **Liveness**: ping/pong heartbeat; when a player disconnects the opponent gets
   `opponentLeft` and the room is torn down.
 
+## Game end
+
+A spell that exits the far side of the screen deals `5 * tier` damage to the player
+there (a spell exiting its owner's own side, e.g. a fleeing retreater, deals nothing).
+When a player's health hits 0 the server broadcasts `gameOver` (winner, or 0 for a
+draw on a simultaneous kill) and tears the room down. The local practice game applies
+the same rules client-side.
+
 ## Not implemented (yet)
 
-- Damage/win condition — the client rules don't have one yet (spells despawn off-screen);
-  the sim mirrors that. `health` is already in the snapshot for when it exists.
 - Reconnection to an in-progress game.
 - Client-side prediction of casts (the client only predicts the flux check to avoid
   pointless sends; spells appear after a server round trip + interpolation delay).

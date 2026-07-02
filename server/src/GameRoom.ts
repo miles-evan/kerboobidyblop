@@ -20,6 +20,7 @@ export default class GameRoom {
 	private loopInterval: NodeJS.Timeout | null = null;
 	private lastLoopTime: number = 0;
 	private accumulator: number = 0;
+	private ended: boolean = false;
 
 	constructor(code: string, onEmpty: (room: GameRoom) => void) {
 		this.code = code;
@@ -83,9 +84,26 @@ export default class GameRoom {
 					});
 			});
 
+			const winner = this.sim.winner;
+			if(winner !== null) {
+				this.broadcast(this.sim.takeSnapshot()); // final state
+				this.broadcast({ type: "gameOver", winner });
+				this.end();
+				return;
+			}
+
 			if(this.sim.tick % SNAPSHOT_EVERY_N_TICKS === 0)
 				this.broadcast(this.sim.takeSnapshot());
 		}
+	}
+
+	private end(): void {
+		this.ended = true;
+		if(this.loopInterval) {
+			clearInterval(this.loopInterval);
+			this.loopInterval = null;
+		}
+		this.onEmpty(this); // free up the room code
 	}
 
 
@@ -121,16 +139,9 @@ export default class GameRoom {
 		if(!player) return;
 
 		this.players = this.players.filter(p => p !== player);
-		this.players.forEach(other => this.send(other, { type: "opponentLeft" }));
-		this.close();
-	}
-
-	private close(): void {
-		if(this.loopInterval) {
-			clearInterval(this.loopInterval);
-			this.loopInterval = null;
-		}
-		this.onEmpty(this);
+		if(!this.ended)
+			this.players.forEach(other => this.send(other, { type: "opponentLeft" }));
+		this.end();
 	}
 
 

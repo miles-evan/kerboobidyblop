@@ -47,7 +47,9 @@ export type StartMessage = {
 	snapshotRate: number,
 };
 export type CastResultMessage = { type: "castResult", seq: number, accepted: boolean, reason?: string };
+export type GameOverMessage = { type: "gameOver", winner: PlayerNum | 0 }; // 0 = draw
 export type OpponentLeftMessage = { type: "opponentLeft" };
 export type ErrorMessage = { type: "error", message: string };
 export type ServerMessage =
-	CreatedMessage | StartMessage | Snapshot | CastResultMessage | OpponentLeftMessage | ErrorMessage;
+	CreatedMessage | StartMessage | Snapshot | CastResultMessage | GameOverMessage
+	| OpponentLeftMessage | ErrorMessage;

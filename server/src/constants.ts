@@ -19,6 +19,7 @@ export const TILE_TICK_PERIOD_MS = SECONDS_PER_TILE * 1000;
 export const FLUX_PER_SECOND = 1;
 export const MAX_FLUX = 10;
 export const STARTING_HEALTH = 100;
+export const DAMAGE_PER_TIER = 5; // a spell reaching the far side deals tier * this
 
 // map of which spells beat who (Spell.tierEliminationMap)
 export const TIER_ELIMINATION_MAP: Record<number, number[]> = {
