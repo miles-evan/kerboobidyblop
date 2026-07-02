@@ -1,6 +1,5 @@
 import Player from "./Player.ts";
 import Game from "../../engine/Game.ts";
-import GameObject from "../../engine/GameObject.ts";
 
 
 export default class KeyboardInputPlayer extends Player {
@@ -10,23 +9,7 @@ export default class KeyboardInputPlayer extends Player {
 	private timeToExpire: number = 0; // time after setting tier and power that it resets
 	private readonly expireDuration: number = 1000;
 
-	
-	constructor() {
-		super();
-		
-		// for debugging:
-		const thisRef = this;
-		new class extends GameObject {
-			constructor() {
-				super(5, 10);
-			}
-			step() {
-				this._object.textContent = thisRef.nextTier + " " + thisRef.nextPower;
-			}
-		}
-	}
-	
-	
+
 	tryCast(): [Tier, Power, Lane] | null {
 		let tier: Tier | null = null;
 		let power: Power | null = null;

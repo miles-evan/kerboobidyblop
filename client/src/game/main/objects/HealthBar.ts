@@ -9,7 +9,7 @@ export default class HealthBar extends GameObject {
 	private fillDiv: HTMLDivElement;
 
 	constructor(player: Player, side: "top" | "bottom") {
-		const width: Pixels = 62;
+		const width: Pixels = Game.screenWidth - 4;
 		super((Game.screenWidth - width) / 2, side === "top"? 1 : 171, width, 8, "");
 		this.player = player;
 		this.depth = -3; // in front of the board and spells

@@ -7,7 +7,7 @@ import FluxBar from "./FluxBar.ts";
 import HealthBar from "./HealthBar.ts";
 import GameOverText from "./GameOverText.ts";
 import RemotePlayer from "../castHandlers/RemotePlayer.ts";
-import KeyboardInputPlayer from "../castHandlers/KeyboardInputPlayer.ts";
+import PointerInputPlayer from "../castHandlers/PointerInputPlayer.ts";
 import type NetworkClient from "../net/NetworkClient.ts";
 import SnapshotBuffer from "../net/SnapshotBuffer.ts";
 import type { PlayerNum, SpellState } from "../net/protocol.ts";
@@ -23,11 +23,12 @@ export default class OnlineBoard extends GameObject {
 	private readonly remoteSpells: Map<number, RemoteSpell> = new Map();
 	private readonly localPlayer: RemotePlayer = new RemotePlayer();
 	private readonly opponent: RemotePlayer = new RemotePlayer();
-	private readonly input: KeyboardInputPlayer = new KeyboardInputPlayer();
+	private readonly input: PointerInputPlayer;
 	private gameOver: boolean = false;
 
 	constructor(net: NetworkClient, localPlayerNum: PlayerNum) {
 		super(0, 0, 64, 180, boardSprite);
+		this.input = new PointerInputPlayer(localPlayerNum);
 		this.middleX = Game.screenWidth / 2;
 		this.middleY = Game.screenHeight / 2;
 		this.depth = 2;
@@ -77,6 +78,7 @@ export default class OnlineBoard extends GameObject {
 
 		this.localPlayer.flux = state.players[this.localPlayerNum].flux;
 		this.localPlayer.health = state.players[this.localPlayerNum].health;
+		this.input.flux = this.localPlayer.flux; // so the cast menu grays out unaffordable options
 		const opponentNum: PlayerNum = this.localPlayerNum === 1? 2 : 1;
 		this.opponent.flux = state.players[opponentNum].flux;
 		this.opponent.health = state.players[opponentNum].health;

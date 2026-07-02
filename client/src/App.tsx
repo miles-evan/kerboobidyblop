@@ -73,31 +73,31 @@ export default function App() {
 
 
 	return (
-		<>
+		<div className="app">
 			<h1>Kerboobidyblop</h1>
 
-			{status && <p>{status}</p>}
+			{status && <p className="status">{status}</p>}
 
-			{mode.kind === "menu" && <div style={{ display: "flex", flexDirection: "column", gap: "8px", maxWidth: "240px" }}>
+			{mode.kind === "menu" && <div className="menu">
 				<button onClick={() => { setStatus(null); setMode({ kind: "local" }); }}>Practice vs bot</button>
 				<button onClick={() => void createGame()}>Create online game</button>
-				<div style={{ display: "flex", gap: "8px" }}>
+				<div className="join-row">
 					<input
 						value={joinCode}
 						onChange={e => setJoinCode(e.target.value)}
 						onKeyDown={e => { if(e.key === "Enter") void joinGame(); }}
-						placeholder="Room code"
+						placeholder="CODE"
 						maxLength={4}
-						style={{ width: "100px", textTransform: "uppercase" }}
 					/>
 					<button onClick={() => void joinGame()}>Join</button>
 				</div>
 			</div>}
 
-			{mode.kind === "waiting" && <div>
-				<p>Room code: <b>{mode.code}</b> — waiting for opponent…</p>
+			{mode.kind === "waiting" && <>
+				<p>Room code: <b className="room-code">{mode.code}</b></p>
+				<p className="status">Waiting for opponent…</p>
 				<button onClick={() => backToMenu()}>Cancel</button>
-			</div>}
+			</>}
 
 			{mode.kind === "local" && <>
 				<Screen setup={room1}/>
@@ -108,7 +108,7 @@ export default function App() {
 				<Screen setup={() => onlineRoom(netRef.current!, mode.playerNum)}/>
 				<button onClick={() => backToMenu()}>Leave game</button>
 			</>}
-		</>
+		</div>
 	);
 
 }

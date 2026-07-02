@@ -24,11 +24,19 @@ export default function Screen({ setup, children }: { setup: () => void, childre
 		<div
 			ref={screenRef}
 			style={{
-				border: "1px solid black",
-				display: "flex",
-				width: "auto",
-				height: "70vh",
-				aspectRatio: "400 / 720",
+				// fill most of the viewport; aspect ratio matches the game's
+				// virtual 96x180 space exactly so there's no dead margin
+				height: "min(78dvh, calc(94vw * 180 / 96))",
+				aspectRatio: "96 / 180",
+				backgroundColor: "#12121f",
+				border: "1px solid #8888",
+				borderRadius: "6px",
+				boxShadow: "0 4px 24px rgba(0, 0, 0, 0.25)",
+				overflow: "hidden",
+				touchAction: "manipulation",
+				userSelect: "none",
+				WebkitUserSelect: "none",
+				WebkitTapHighlightColor: "transparent",
 			}}
 		>
 			{children}
